@@ -6838,21 +6838,23 @@ tests:
     timeout: 5
     args:
       - "/tmp/gccrs-ui/src/test/ui/parser/raw/issue-70677-panic-on-unterminated-raw-str-at-eof.rs"
-  - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-literals.rs
-    binary: ./build/gcc/rust1
-    timeout: 5
-    args:
-      - "/tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-literals.rs"
+        # FIXME: ftf complains about UTF-8
+        # - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-literals.rs
+        #   binary: ./build/gcc/rust1
+        #   timeout: 5
+        #   args:
+        #     - "/tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-literals.rs"
   - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-str-unterminated.rs
     binary: ./build/gcc/rust1
     timeout: 5
     args:
       - "/tmp/gccrs-ui/src/test/ui/parser/raw/raw-str-unterminated.rs"
-  - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-eof.rs
-    binary: ./build/gcc/rust1
-    timeout: 5
-    args:
-      - "/tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-eof.rs"
+        # FIXME: ftf complains about UTF-8
+        # - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-eof.rs
+        #   binary: ./build/gcc/rust1
+        #   timeout: 5
+        #   args:
+        #     - "/tmp/gccrs-ui/src/test/ui/parser/raw/raw-byte-string-eof.rs"
   - name: Compile /tmp/gccrs-ui/src/test/ui/parser/raw/raw-string-2.rs
     binary: ./build/gcc/rust1
     timeout: 5
@@ -57668,11 +57670,12 @@ tests:
     timeout: 5
     args:
       - "/tmp/gccrs-ui/src/test/ui/lexer/lex-bad-numeric-literals.rs"
-  - name: Compile /tmp/gccrs-ui/src/test/ui/lexer/lex-bad-char-literals-1.rs
-    binary: ./build/gcc/rust1
-    timeout: 5
-    args:
-      - "/tmp/gccrs-ui/src/test/ui/lexer/lex-bad-char-literals-1.rs"
+        # FIXME: ftf complains about UTF8
+        # - name: Compile /tmp/gccrs-ui/src/test/ui/lexer/lex-bad-char-literals-1.rs
+        #   binary: ./build/gcc/rust1
+        #   timeout: 5
+        #   args:
+        #     - "/tmp/gccrs-ui/src/test/ui/lexer/lex-bad-char-literals-1.rs"
   - name: Compile /tmp/gccrs-ui/src/test/ui/lexer/lex-bad-char-literals-6.rs
     binary: ./build/gcc/rust1
     timeout: 5
