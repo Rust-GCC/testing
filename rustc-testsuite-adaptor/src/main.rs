@@ -1,29 +1,17 @@
+mod adaptor;
 mod args;
 mod error;
 
 use std::ffi::OsStr;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use adaptor::FileAdaptorExt;
 use args::Args;
 use error::Error;
 
 use structopt::StructOpt;
 use walkdir::WalkDir;
-
-macro_rules! log {
-    (info $($msg:expr),*) => {{
-        use std::io::Write;
-
-        eprint!("[INFO] ");
-        eprint!($($msg),*);
-
-        std::io::stderr().lock().flush().unwrap();
-    }};
-    ($($msg:expr),*) => {
-        log!(info $($msg),*)
-    };
-}
 
 fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     match path.exists() {
@@ -32,36 +20,31 @@ fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     }
 }
 
-fn fetch_test_cases(rustc: &Path, out_dir: &Path) -> Result<(), Error> {
+fn fetch_test_cases<'i>(
+    rustc: &'i Path,
+    out_dir: &'i Path,
+) -> impl Iterator<Item = Result<PathBuf, Error>> + 'i {
     // FIXME: Add more tests than just src/test/ui
     let ui_tests = rustc.join("src").join("test").join("ui");
 
-    for entry in WalkDir::new(ui_tests) {
-        let entry = entry?;
-        let old_path = entry.path();
+    WalkDir::new(ui_tests)
+        .into_iter()
+        // FIXME: We can skip some known test with issues here
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().extension() == Some(OsStr::new("rs")))
+        .map(move |entry| {
+            let old_path = entry.path();
+            let new_path = old_path.strip_prefix(rustc)?;
+            let new_path = out_dir.join(&new_path);
 
-        if old_path.extension() != Some(OsStr::new("rs")) {
-            continue;
-        }
+            if let Some(new_parent) = new_path.parent() {
+                fs::create_dir_all(new_parent)?;
+            }
 
-        let new_path = old_path.strip_prefix(rustc)?;
-        let new_path = out_dir.join(&new_path);
+            fs::copy(old_path, &new_path)?;
 
-        if let Some(new_parent) = new_path.parent() {
-            fs::create_dir_all(new_parent)?;
-        }
-
-        log!(
-            info
-            "copying file `{}` -> `{}`\r",
-            &old_path.display(),
-            &new_path.display()
-        );
-
-        fs::copy(old_path, new_path)?;
-    }
-
-    Ok(())
+            Ok(new_path)
+        })
 }
 
 fn main() -> anyhow::Result<()> {
@@ -72,7 +55,21 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoRustc(args.rustc).into());
     }
 
-    fetch_test_cases(&args.rustc, &args.output_dir)?;
+    let yml: Result<String, Error> = fetch_test_cases(&args.rustc, &args.output_dir)
+        .adapt()
+        .try_fold(String::from("tests:\n"), |yml, path| {
+            let path = path?;
+
+            let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
+            let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
+            let yml = format!("{}    timeout: 5\n", yml);
+            let yml = format!("{}    args:\n", yml);
+            let yml = format!("{}      - \"{}\"\n", yml, &path.display());
+
+            Ok(yml)
+        });
+
+    fs::write(&args.yaml, yml?.as_bytes())?;
 
     Ok(())
 }

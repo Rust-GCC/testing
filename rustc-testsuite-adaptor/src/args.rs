@@ -13,4 +13,6 @@ pub struct Args {
     pub(crate) yaml: PathBuf,
     #[structopt(short, long, help = "path to the rustc repository")]
     pub(crate) rustc: PathBuf,
+    #[structopt(short, long, help = "path to the compiler to use")]
+    pub(crate) compiler: PathBuf,
 }
