@@ -1,0 +1,6 @@
+[submodule "rust"]
+	path = rust
+	url = https://github.com/rust-lang/rust
+[submodule "ftf"]
+	path = ftf
+	url = https://github.com/cohenarthur/ftf
