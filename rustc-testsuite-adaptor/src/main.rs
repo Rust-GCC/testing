@@ -62,6 +62,7 @@ fn main() -> anyhow::Result<()> {
 
             let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
             let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
+            // FIXME: Add default timeout instead of hardcoded value
             let yml = format!("{}    timeout: 5\n", yml);
             let yml = format!("{}    args:\n", yml);
             let yml = format!("{}      - \"{}\"\n", yml, &path.display());
