@@ -4,7 +4,7 @@ mod error;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use args::Args;
 use error::Error;
@@ -12,6 +12,10 @@ use error::Error;
 use rayon::prelude::*;
 use structopt::StructOpt;
 use walkdir::WalkDir;
+
+fn log<T: Into<String>>(msg: T) {
+    eprintln!("[log] {}", msg.into());
+}
 
 fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     match path.exists() {
@@ -53,30 +57,40 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoRustc(args.rustc).into());
     }
 
-    let tuples: Vec<Result<(PathBuf, bool), Error>> =
-        fetch_test_cases(&args.rustc, &args.output_dir)
-            .into_par_iter()
-            .map(|path| {
-                let path = path?;
+    let tuples: Vec<Result<_, Error>> = fetch_test_cases(&args.rustc, &args.output_dir)
+        .into_par_iter()
+        .map(|path| {
+            let path = path?;
 
-                let is_valid = Command::new("rustc")
-                    .arg("-Z")
-                    .arg("parse-only")
-                    .arg("--edition")
-                    .arg("2021")
-                    .arg(path.as_os_str())
-                    .status()?
-                    .success();
+            log(format!(
+                "running `rustc -Z parse-only --edition 2018 {}`",
+                path.display()
+            ));
 
-                Ok((path, is_valid))
-            })
-            .collect();
+            let is_valid = Command::new("rustc")
+                // FIXME: We need to instead build a specific version of rustc to test against rather than using the user's
+                .env("RUSTC_BOOTSTRAP", "1")
+                .arg("-Z")
+                .arg("parse-only")
+                .arg("--edition")
+                .arg("2021")
+                .arg(path.as_os_str())
+                .stderr(Stdio::piped())
+                .stdout(Stdio::piped())
+                .status()?
+                .success();
 
-    let yml: Result<String, Error> =
+            Ok((path, is_valid))
+        })
+        .collect();
+
+    let yml: Result<_, Error> =
         tuples
             .into_iter()
             .try_fold(String::from("tests:\n"), |yml, tuple| {
                 let (path, is_valid) = tuple?;
+
+                log(format!("generating test case for {}", path.display()));
 
                 let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
                 let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
