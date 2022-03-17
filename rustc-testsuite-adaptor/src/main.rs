@@ -1,15 +1,15 @@
-mod adaptor;
 mod args;
 mod error;
 
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
-use adaptor::FileAdaptorExt;
 use args::Args;
 use error::Error;
 
+use rayon::prelude::*;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
@@ -20,10 +20,7 @@ fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     }
 }
 
-fn fetch_test_cases<'i>(
-    rustc: &'i Path,
-    out_dir: &'i Path,
-) -> impl Iterator<Item = Result<PathBuf, Error>> + 'i {
+fn fetch_test_cases(rustc: &Path, out_dir: &Path) -> Vec<Result<PathBuf, Error>> {
     // FIXME: Add more tests than just src/test/ui
     let ui_tests = rustc.join("src").join("test").join("ui");
 
@@ -45,6 +42,7 @@ fn fetch_test_cases<'i>(
 
             Ok(new_path)
         })
+        .collect()
 }
 
 fn main() -> anyhow::Result<()> {
@@ -55,20 +53,46 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoRustc(args.rustc).into());
     }
 
-    let yml: Result<String, Error> = fetch_test_cases(&args.rustc, &args.output_dir)
-        .adapt()
-        .try_fold(String::from("tests:\n"), |yml, path| {
-            let path = path?;
+    let tuples: Vec<Result<(PathBuf, bool), Error>> =
+        fetch_test_cases(&args.rustc, &args.output_dir)
+            .into_par_iter()
+            .map(|path| {
+                let path = path?;
 
-            let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
-            let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
-            // FIXME: Add default timeout instead of hardcoded value
-            let yml = format!("{}    timeout: 5\n", yml);
-            let yml = format!("{}    args:\n", yml);
-            let yml = format!("{}      - \"{}\"\n", yml, &path.display());
+                let is_valid = Command::new("rustc")
+                    .arg("-Z")
+                    .arg("parse-only")
+                    .arg("--edition")
+                    .arg("2021")
+                    .arg(path.as_os_str())
+                    .status()?
+                    .success();
 
-            Ok(yml)
-        });
+                Ok((path, is_valid))
+            })
+            .collect();
+
+    let yml: Result<String, Error> =
+        tuples
+            .into_iter()
+            .try_fold(String::from("tests:\n"), |yml, tuple| {
+                let (path, is_valid) = tuple?;
+
+                let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
+                let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
+                // FIXME: Add default timeout instead of hardcoded value
+                let yml = format!("{}    timeout: 5\n", yml);
+                let yml = format!(
+                    "{}    exit_code: {}\n",
+                    yml,
+                    if is_valid { "0" } else { "1" }
+                );
+                let yml = format!("{}    args:\n", yml);
+                let yml = format!("{}      - \"-fsyntax-only\"\n", yml);
+                let yml = format!("{}      - \"{}\"\n", yml, &path.display());
+
+                Ok(yml)
+            });
 
     fs::write(&args.yaml, yml?.as_bytes())?;
 
