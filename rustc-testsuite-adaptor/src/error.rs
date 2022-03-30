@@ -4,8 +4,10 @@ use std::convert::From;
 pub enum Error {
     #[error("{0}")]
     Io(std::io::Error),
-    #[error("given path to `rustc` does not exist: {0}")]
-    NoRustc(std::path::PathBuf),
+    #[error("given path to `rust` does not exist: {0}")]
+    NoRust(std::path::PathBuf),
+    #[error("given path to `gccrs` does not exist: {0}")]
+    NoGccrs(std::path::PathBuf),
     #[error("{0}")]
     PathPrefix(std::path::StripPrefixError),
     #[error("{0}")]
