@@ -12,13 +12,13 @@ use crate::{args::Args, error::Error};
 pub struct TestCase {
     name: String,
     binary: String,
-    exit_code: i32,
+    exit_code: u8,
     timeout: i32,
     args: Vec<String>,
 }
 
 impl TestCase {
-    pub fn with_exit_code(self, exit_code: i32) -> TestCase {
+    pub fn with_exit_code(self, exit_code: u8) -> TestCase {
         TestCase { exit_code, ..self }
     }
 
@@ -57,7 +57,7 @@ impl Display for TestCase {
         writeln!(f, "    args:")?;
 
         for arg in self.args.iter() {
-            write!(f, "      - \"{}\"", arg)?;
+            writeln!(f, "      - \"{}\"", arg)?;
         }
 
         Ok(())
