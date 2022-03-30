@@ -17,7 +17,7 @@ using the following command:
 
 ## Generate the parsing test-suite
 
-The test-suite adaptor is located in `rustc-testsuite-adaptor`. It is a simple program in charge of generating a sensible test-suite for gccrs from rustc's test-suite. For now, the only generation available is the generation of a parsing test-suite: The application launches `rustc` with the `-Z parse-only` flag and keeps track of the exit code, in order to make sure that gccrs with the `-fsyntax-only` flag has the same behavior.
+The test-suite adaptor is located in `testsuite-adaptor`. It is a simple program in charge of generating a sensible test-suite for gccrs from rustc's test-suite. For now, the only generation available is the generation of a parsing test-suite: The application launches `rustc` with the `-Z parse-only` flag and keeps track of the exit code, in order to make sure that gccrs with the `-fsyntax-only` flag has the same behavior.
 
 Running the adaptor is time consuming: It takes roughly 5 minutes to generate the parsing test-suite on my machine.
 
@@ -79,12 +79,12 @@ If everything went smoothly, you should simply be able to run `ftf` on the gener
 ## Typical first invocation
 
 ```sh
-> cargo run --manifest-path rustc-testsuite-adaptor/Cargo.toml -- \
+> # the --manifest-path argument is to run the adaptor from the root of this repository
+> cargo run --manifest-path testsuite-adaptor/Cargo.toml -- \
 	--gccrs './rust1' --rustc rustc \
 	--gccrs-path gccrs/ --rust_path rust/ \
 	--output-dir sources/ --yaml testsuite.yml \
 	--passes gccrs-parsing rustc-dejagnu
-> # the --manifest-path argument is to run the adaptor from the root of this repository
 > ftf -f testsuite.yml -j$(nproc)
 ```
 

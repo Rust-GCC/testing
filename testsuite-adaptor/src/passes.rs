@@ -109,3 +109,14 @@ impl FromStr for PassKind {
         }
     }
 }
+
+impl Display for PassKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match &self {
+            PassKind::GccrsParsing => "gccrs-parsing",
+            PassKind::RustcDejagnu => "rustc-dejagnu",
+        };
+
+        write!(f, "{}", s)
+    }
+}

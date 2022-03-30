@@ -1,7 +1,7 @@
 use crate::args::Args;
+use crate::copy_rs_files;
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
-use crate::{copy_rs_files, log};
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -13,17 +13,10 @@ impl Pass for RustcDejagnu {
         let gccrs_path = &args.gccrs_path;
         let tests_path = gccrs_path.join("gcc").join("testsuite").join("rust");
 
-        log(format!(
-            "fetching test cases for rustc-dejagnu from `{}`",
-            gccrs_path.display()
-        ));
-
         copy_rs_files(&tests_path, &args.output_dir, gccrs_path)
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        log(format!("adapting gccrs test case `{}`", file.display()));
-
         let test_content = fs::read_to_string(file)?;
 
         let exit_code = if test_content.contains("dg-error") {

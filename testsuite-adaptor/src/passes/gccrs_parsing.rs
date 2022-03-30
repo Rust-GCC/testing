@@ -1,7 +1,7 @@
 use crate::args::Args;
+use crate::copy_rs_files;
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
-use crate::{copy_rs_files, log};
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -14,20 +14,10 @@ impl Pass for GccrsParsing {
         let rust_path = &args.rust_path;
         let ui_tests = rust_path.join("src").join("test").join("ui");
 
-        log(format!(
-            "fetching test cases for gccrs-parsing from `{}`",
-            ui_tests.display()
-        ));
-
         copy_rs_files(&ui_tests, &args.output_dir, rust_path)
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        log(format!(
-            "running `rustc -Z parse-only --edition 2018 {}`",
-            file.display()
-        ));
-
         let is_valid = Command::new(&args.rustc)
             // FIXME: We need to instead build a specific version of rustc to test against rather than using the user's
             .env("RUSTC_BOOTSTRAP", "1")
