@@ -63,7 +63,7 @@ List of passes to run and generate a test suite from. The currently available pa
 
 |Pass|Description|
 |---|---|
-|gccrs-parsing|Tests `gccrs`'s parser. This allows testing `gccrs` against `rustc` in parsing-mode (`-Z parse-only` and `-fsyntax-only`) against `rustc`|
+|gccrs-parsing|Tests `gccrs`'s parser. This allows testing `gccrs` against `rustc` in parsing-mode (`-Z parse-only` and `-fsyntax-only`)|
 |rustc-dejagnu|Launch `rustc` against our dejagnu testsuite. This allows validating `gccrs`'s testsuite, making sure that tests are proper rust code|
 
 You can give multiple values to this option as it takes a vector of passes. Generating multiple test-suites at once would look like so `--passes gccrs-parsing rustc-dejagnu`.
