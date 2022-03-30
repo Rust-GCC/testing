@@ -96,17 +96,20 @@ fn main() -> anyhow::Result<()> {
 
     let test_suites: Result<Vec<String>, Error> = args
         .passes
-        .iter()
+        .par_iter()
         .map(|pass_kind| {
             log!("running pass `{}`...", pass_kind);
 
             let pass = pass_dispatch(pass_kind);
 
-            log!("fetching test files...");
+            log!("fetching test files for `{}`...", pass_kind);
 
             let files = pass.fetch(&args)?;
 
-            log!("generating test cases... this might take a while");
+            log!(
+                "generating test cases for `{}`... this might take a while",
+                pass_kind
+            );
 
             let test_suite = apply_pass(&*pass, &args, &files)?;
 
