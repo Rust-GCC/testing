@@ -1,3 +1,9 @@
+mod gccrs_parsing;
+mod rustc_dejagnu;
+
+pub use gccrs_parsing::GccrsParsing;
+pub use rustc_dejagnu::RustcDejagnu;
+
 use std::{
     fmt::Display,
     path::{Path, PathBuf},

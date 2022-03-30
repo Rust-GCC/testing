@@ -1,4 +1,4 @@
-use crate::pass::PassKind;
+use crate::passes::PassKind;
 
 use std::path::PathBuf;
 
