@@ -1,5 +1,6 @@
 mod args;
 mod error;
+mod pass;
 
 use std::ffi::OsStr;
 use std::fs;
