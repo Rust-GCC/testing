@@ -29,17 +29,25 @@ You can run the application either in debug or release mode: As it is extremely 
 
 You can generate a testsuite using the following arguments:
 
-### --compiler,-c
+### --gccrs,-g
 
-The compiler executable you want to test. The command will be launched similarly to how an executable is launched from the shell, so you can either specify a relative path to an executable, an absolute path, or simply the name of an executable present in your path.
+The gccrs executable you want to test. The command will be launched similarly to how an executable is launched from the shell, so you can either specify a relative path to an executable, an absolute path, or simply the name of an executable present in your path.
 
-One way to do this is to copy a freshly built `rust1` from your `gccrs` local copy, and pass `--compiler './rust1'` as an argument. If you've copied your whole build directory, the argument would look something like `--compiler './build/gcc/rust1`.
+One way to do this is to copy a freshly built `rust1` from your `gccrs` local copy, and pass `--gccrs './rust1'` as an argument. If you've copied your whole build directory, the argument would look something like `--gccrs './build/gcc/rust1`.
 
-If you have `gccrs` installed on your system, you can also simply pass `--compiler gccrs`. Be careful in that running the testsuite with a full compiler driver will obviously be much longer.
+If you have `gccrs` installed on your system, you can also simply pass `--gccrs gccrs`. Be careful in that running the testsuite with a full compiler driver will obviously be much longer.
 
 ### --rustc,-r
 
+`rustc` executable to use and test. Similar rules apply.
+
+### --rust_path
+
 Path to the cloned rustc repository to extract test cases from.
+
+### --gccrs_path
+
+Path to the cloned gccrs repository to extract test cases from.
 
 ### --output-dir,-o
 
@@ -48,6 +56,19 @@ Directory to create and in which to store the adapted test cases. The directory 
 ### --yaml,-y
 
 Path of the `ftf` test-suite file to create.
+
+### --passes,-p
+
+List of passes to run and generate a test suite from. The currently available passes are
+
+|Pass|Description|
+|---|---|
+|gccrs-parsing|Tests `gccrs`'s parser. This allows testing `gccrs` against `rustc` in parsing-mode (`-Z parse-only` and `-fsyntax-only`) against `rustc`|
+|rustc-dejagnu|Launch `rustc` against our dejagnu testsuite. This allows validating `gccrs`'s testsuite, making sure that tests are proper rust code|
+
+You can give multiple values to this option as it takes a vector of passes. Generating multiple test-suites at once would look like so `--passes gccrs-parsing rustc-dejagnu`.
+
+A single YAML file is generated, even for multiple passes.
 
 ## Running the test-suite
 
@@ -59,7 +80,10 @@ If everything went smoothly, you should simply be able to run `ftf` on the gener
 
 ```sh
 > cargo run --manifest-path rustc-testsuite-adaptor/Cargo.toml -- \
-	--compiler './rust1' --output-dir sources/ --rustc rust --yaml testsuite.yml
+	--gccrs './rust1' --rustc rustc \
+	--gccrs-path gccrs/ --rust_path rust/ \
+	--output-dir sources/ --yaml testsuite.yml \
+	--passes gccrs-parsing rustc-dejagnu
 > # the --manifest-path argument is to run the adaptor from the root of this repository
 > ftf -f testsuite.yml -j$(nproc)
 ```
