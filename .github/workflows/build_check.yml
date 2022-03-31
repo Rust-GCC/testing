@@ -1,6 +1,13 @@
 name: gccrs-testing-test
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  RUSTFLAGS: '-Dwarnings'
 
 jobs:
   coding-style:
@@ -9,9 +16,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Check the coding style
-      run: |
-          cd testsuite-adaptor
-          cargo fmt -- --check
+      run: cargo fmt -- --check
+      working-directory: testsuite-adaptor
 
   check:
     runs-on: ubuntu-latest
@@ -19,13 +25,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build testsuite-adaptor
-      run: |
-          cd testsuite-adaptor
-          cargo check
+    - name: Check testsuite-adaptor
+      run: cargo check
+      working-directory: testsuite-adaptor
+    - name: Run Clippy
+      run: cargo clippy --all -- -Wclippy::pedantic
+      working-directory: testsuite-adaptor
 
   # Generate an entire testsuite to make sure it completes properly
   run:
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     needs: check
 
