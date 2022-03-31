@@ -1,19 +1,21 @@
 mod args;
 mod error;
+mod passes;
 
 use std::ffi::OsStr;
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 use args::Args;
 use error::Error;
+use passes::{Pass, PassKind};
 
 use rayon::prelude::*;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
-fn log<T: Into<String>>(msg: T) {
+pub fn log<T: Into<String>>(msg: T) {
     eprintln!("[log] {}", msg.into());
 }
 
@@ -24,19 +26,20 @@ fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     }
 }
 
-fn fetch_test_cases(rustc: &Path, out_dir: &Path) -> Vec<Result<PathBuf, Error>> {
-    // FIXME: Add more tests than just src/test/ui
-    let ui_tests = rustc.join("src").join("test").join("ui");
-
-    WalkDir::new(ui_tests)
+pub fn copy_rs_files(
+    from: &Path,
+    to: &Path,
+    prefix_to_strip: &Path,
+) -> Result<Vec<PathBuf>, Error> {
+    WalkDir::new(from)
         .into_iter()
         // FIXME: We can skip some known test with issues here
         .filter_map(|entry| entry.ok())
         .filter(|entry| entry.path().extension() == Some(OsStr::new("rs")))
         .map(move |entry| {
             let old_path = entry.path();
-            let new_path = old_path.strip_prefix(rustc)?;
-            let new_path = out_dir.join(&new_path);
+            let new_path = old_path.strip_prefix(&prefix_to_strip)?;
+            let new_path = to.join(&new_path);
 
             if let Some(new_parent) = new_path.parent() {
                 fs::create_dir_all(new_parent)?;
@@ -49,66 +52,59 @@ fn fetch_test_cases(rustc: &Path, out_dir: &Path) -> Vec<Result<PathBuf, Error>>
         .collect()
 }
 
+fn pass_dispatch(pass: &PassKind) -> Box<dyn Pass> {
+    match pass {
+        PassKind::GccrsParsing => Box::new(passes::GccrsParsing),
+        PassKind::RustcDejagnu => Box::new(passes::RustcDejagnu),
+    }
+}
+
+fn apply_pass(pass: &dyn Pass, args: &Args, files: &[PathBuf]) -> Result<String, Error> {
+    files
+        .into_par_iter()
+        .map(|file| pass.adapt(args, file))
+        .try_fold(String::new, |acc, test_case: Result<_, Error>| {
+            Ok(format!("{}\n{}", acc, test_case?))
+        })
+        .collect()
+}
+
 fn main() -> anyhow::Result<()> {
     let args = Args::from_args();
-
     maybe_create_output_dir(&args.output_dir)?;
-    if !args.rustc.exists() {
-        return Err(Error::NoRustc(args.rustc).into());
+    if !args.rust_path.exists() {
+        return Err(Error::NoRust(args.rust_path).into());
+    }
+    if !args.gccrs_path.exists() {
+        return Err(Error::NoGccrs(args.gccrs_path).into());
     }
 
-    let tuples: Vec<Result<_, Error>> = fetch_test_cases(&args.rustc, &args.output_dir)
-        .into_par_iter()
-        .map(|path| {
-            let path = path?;
+    let ftf_header = String::from("tests:\n");
 
-            log(format!(
-                "running `rustc -Z parse-only --edition 2018 {}`",
-                path.display()
-            ));
+    let test_suites: Result<Vec<String>, Error> = args
+        .passes
+        .iter()
+        .map(|pass| {
+            let pass = pass_dispatch(pass);
+            let files = pass.fetch(&args)?;
 
-            let is_valid = Command::new("rustc")
-                // FIXME: We need to instead build a specific version of rustc to test against rather than using the user's
-                .env("RUSTC_BOOTSTRAP", "1")
-                .arg("-Z")
-                .arg("parse-only")
-                .arg("--edition")
-                .arg("2021")
-                .arg(path.as_os_str())
-                .stderr(Stdio::piped())
-                .stdout(Stdio::piped())
-                .status()?
-                .success();
+            let test_suite = apply_pass(&*pass, &args, &files)?;
 
-            Ok((path, is_valid))
+            Ok(test_suite)
         })
         .collect();
 
-    let yml: Result<_, Error> =
-        tuples
-            .into_iter()
-            .try_fold(String::from("tests:\n"), |yml, tuple| {
-                let (path, is_valid) = tuple?;
+    let mut yml = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(&args.yaml)?;
 
-                log(format!("generating test case for {}", path.display()));
+    yml.write_all(ftf_header.as_bytes())?;
 
-                let yml = format!("{}  - name: Compile {}\n", yml, &path.display());
-                let yml = format!("{}    binary: {}\n", yml, &args.compiler.display());
-                // FIXME: Add default timeout instead of hardcoded value
-                let yml = format!("{}    timeout: 5\n", yml);
-                let yml = format!(
-                    "{}    exit_code: {}\n",
-                    yml,
-                    if is_valid { "0" } else { "1" }
-                );
-                let yml = format!("{}    args:\n", yml);
-                let yml = format!("{}      - \"-fsyntax-only\"\n", yml);
-                let yml = format!("{}      - \"{}\"\n", yml, &path.display());
-
-                Ok(yml)
-            });
-
-    fs::write(&args.yaml, yml?.as_bytes())?;
+    test_suites?
+        .iter()
+        .try_for_each(|suite| yml.write_all(suite.as_bytes()))?;
 
     Ok(())
 }
