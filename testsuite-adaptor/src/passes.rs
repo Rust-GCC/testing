@@ -62,7 +62,7 @@ impl Display for TestCase {
         writeln!(f, "    exit_code: {}", self.exit_code)?;
         writeln!(f, "    args:")?;
 
-        for arg in self.args.iter() {
+        for arg in &self.args {
             writeln!(f, "      - \"{}\"", arg)?;
         }
 
