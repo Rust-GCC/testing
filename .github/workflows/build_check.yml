@@ -1,0 +1,43 @@
+name: gccrs-testing-test
+
+on: pull_request
+
+jobs:
+  coding-style:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check the coding style
+      run: |
+          cd testsuite-adaptor
+          cargo fmt -- --check
+
+  check:
+    runs-on: ubuntu-latest
+    needs: coding-style
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build testsuite-adaptor
+      run: |
+          cd testsuite-adaptor
+          cargo check
+
+  # Generate an entire testsuite to make sure it completes properly
+  run:
+    runs-on: ubuntu-latest
+    needs: check
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build testsuite-adaptor
+      run: |
+          cd testsuite-adaptor
+          cargo build --release
+          git clone https://github.com/rust-lang/rust local_rust
+          git clone https://github.com/rust-gcc/gccrs local_gccrs
+          target/release/testsuite-adaptor --gccrs './rust1' --rustc rustc \
+          --output-dir tmp-test-sources --yaml test.yml \
+          --rust-path local_rust --gccrs-path local_gccrs \
+          --passes rustc-dejagnu gccrs-parsing

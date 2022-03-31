@@ -1,5 +1,6 @@
 mod args;
 mod error;
+mod log;
 mod passes;
 
 use std::ffi::OsStr;
@@ -14,10 +15,7 @@ use passes::{Pass, PassKind};
 use rayon::prelude::*;
 use structopt::StructOpt;
 use walkdir::WalkDir;
-
-pub fn log<T: Into<String>>(msg: T) {
-    eprintln!("[log] {}", msg.into());
-}
+use which::which;
 
 fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     match path.exists() {
@@ -69,6 +67,18 @@ fn apply_pass(pass: &dyn Pass, args: &Args, files: &[PathBuf]) -> Result<String,
         .collect()
 }
 
+fn warn_on_file_not_found(name: &str, path: &Path) {
+    if which(path).is_err() {
+        warn!(
+            "given path to {} ({}) does not point to a valid file. \
+            If you're not trying to run the test suite from the current directory, \
+            you can ignore this warning",
+            name,
+            path.display()
+        );
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     let args = Args::from_args();
     maybe_create_output_dir(&args.output_dir)?;
@@ -79,16 +89,31 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoGccrs(args.gccrs_path).into());
     }
 
+    warn_on_file_not_found("rustc", &args.rustc);
+    warn_on_file_not_found("gccrs", &args.gccrs);
+
     let ftf_header = String::from("tests:\n");
 
     let test_suites: Result<Vec<String>, Error> = args
         .passes
-        .iter()
-        .map(|pass| {
-            let pass = pass_dispatch(pass);
+        .par_iter()
+        .map(|pass_kind| {
+            log!("running pass `{}`...", pass_kind);
+
+            let pass = pass_dispatch(pass_kind);
+
+            log!("fetching test files for `{}`...", pass_kind);
+
             let files = pass.fetch(&args)?;
 
+            log!(
+                "generating test cases for `{}`... this might take a while",
+                pass_kind
+            );
+
             let test_suite = apply_pass(&*pass, &args, &files)?;
+
+            log!("`{}` pass complete!", pass_kind);
 
             Ok(test_suite)
         })
