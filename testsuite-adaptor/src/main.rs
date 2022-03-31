@@ -18,12 +18,21 @@ use walkdir::WalkDir;
 use which::which;
 
 fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
-    match path.exists() {
-        true => Ok(()),
-        false => Ok(fs::create_dir(path)?),
+    if !path.exists() {
+        fs::create_dir(path)?;
     }
+    Ok(())
 }
 
+/// Copies `*.rs` files from the path `from` to the path `to`, while stripping the prefix
+/// `prefix_to_strip` from the path.
+///
+/// # Errors
+///
+/// This functions returns an error if either
+/// - it fails to strip the prefix
+/// - it fails to create the new directory
+/// - it fails to copy the file to the new location
 pub fn copy_rs_files(
     from: &Path,
     to: &Path,
@@ -32,7 +41,7 @@ pub fn copy_rs_files(
     WalkDir::new(from)
         .into_iter()
         // FIXME: We can skip some known test with issues here
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.path().extension() == Some(OsStr::new("rs")))
         .map(move |entry| {
             let old_path = entry.path();
