@@ -17,7 +17,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Check the coding style
       run: cargo fmt -- --check
-      working-directory: testsuite-adaptor
 
   check:
     runs-on: ubuntu-latest
@@ -27,10 +26,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Check testsuite-adaptor
       run: cargo check
-      working-directory: testsuite-adaptor
     - name: Run Clippy
       run: cargo clippy --all -- -Wclippy::pedantic
-      working-directory: testsuite-adaptor
 
   # Generate an entire testsuite to make sure it completes properly
   run:
@@ -42,11 +39,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build testsuite-adaptor
       run: |
-          cd testsuite-adaptor
           cargo build --release
-          git clone https://github.com/rust-lang/rust local_rust
+          git submodule update --init
           git clone https://github.com/rust-gcc/gccrs local_gccrs
           target/release/testsuite-adaptor --gccrs './rust1' --rustc rustc \
           --output-dir tmp-test-sources --yaml test.yml \
-          --rust-path local_rust --gccrs-path local_gccrs \
+          --rust-path rust --gccrs-path local_gccrs \
           --passes rustc-dejagnu gccrs-parsing
