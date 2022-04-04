@@ -17,13 +17,15 @@ using the following command:
 
 ## Generate the parsing test-suite
 
-The test-suite adaptor is located in `testsuite-adaptor`. It is a simple program in charge of generating a sensible test-suite for gccrs from rustc's test-suite. For now, the only generation available is the generation of a parsing test-suite: The application launches `rustc` with the `-Z parse-only` flag and keeps track of the exit code, in order to make sure that gccrs with the `-fsyntax-only` flag has the same behavior.
+The test-suite adaptor is a simple program in charge of generating a sensible test-suite for gccrs from rustc's test-suite, as well as making sure our testsuite is valid rust code. For now, there are two "passes" available: 
 
-Running the adaptor is time consuming: It takes roughly 5 minutes to generate the parsing test-suite on my machine.
+1. A parsing test-suite, where the application launches `rustc` with the `-Z parse-only` flag and keeps track of the exit code, in order to make sure that gccrs with the `-fsyntax-only` flag has the same behavior.
 
-Currently, the program simply launches the `rustc` installed on your system, which is an issue.
+2. A validation test-suite, where we make sure that rustc can compile gccrs' dejagnu test-suite. This helps in ensuring that our tests are proper rust code.
 
-It also absolutely hammers your computer by launching $(nproc) instances of rustc to create the test-suite baseline.
+Running the adaptor is time consuming: It takes roughly 5 minutes to generate the parsing test-suite on a powerful machine.
+
+It also absolutely hammers your computer by launching `$(nproc)` instances of rustc to create the test-suite baseline.
 
 You can run the application either in debug or release mode: As it is extremely IO-intensive, it does not benefit a lot from the extra optimizations (for now!).
 
@@ -79,8 +81,7 @@ If everything went smoothly, you should simply be able to run `ftf` on the gener
 ## Typical first invocation
 
 ```sh
-> # the --manifest-path argument is to run the adaptor from the root of this repository
-> cargo run --manifest-path testsuite-adaptor/Cargo.toml -- \
+> cargo run -- \
 	--gccrs './rust1' --rustc rustc \
 	--gccrs-path gccrs/ --rust_path rust/ \
 	--output-dir sources/ --yaml testsuite.yml \
