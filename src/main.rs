@@ -63,6 +63,7 @@ fn pass_dispatch(pass: &PassKind) -> Box<dyn Pass> {
     match pass {
         PassKind::GccrsParsing => Box::new(passes::GccrsParsing),
         PassKind::RustcDejagnu => Box::new(passes::RustcDejagnu),
+        PassKind::GccrsPrivacy => Box::new(passes::GccrsPrivacy),
     }
 }
 

@@ -1,7 +1,9 @@
 mod gccrs_parsing;
+mod gccrs_privacy;
 mod rustc_dejagnu;
 
 pub use gccrs_parsing::GccrsParsing;
+pub use gccrs_privacy::GccrsPrivacy;
 pub use rustc_dejagnu::RustcDejagnu;
 
 use std::{
@@ -87,6 +89,9 @@ pub enum PassKind {
     GccrsParsing,
     /// Generates test cases for running rustc on gccrs' test-suite
     RustcDejagnu,
+    /// Running gccrs on rustc's privacy test-suite, adapting only the privacy
+    /// related errors
+    GccrsPrivacy,
 }
 
 #[derive(Debug)]
@@ -105,6 +110,7 @@ impl FromStr for PassKind {
         match s {
             "gccrs-parsing" => Ok(PassKind::GccrsParsing),
             "rustc-dejagnu" => Ok(PassKind::RustcDejagnu),
+            "gccrs-privacy" => Ok(PassKind::GccrsPrivacy),
             s => Err(InvalidPassKind(s.to_string())),
         }
     }
@@ -115,6 +121,7 @@ impl Display for PassKind {
         let s = match &self {
             PassKind::GccrsParsing => "gccrs-parsing",
             PassKind::RustcDejagnu => "rustc-dejagnu",
+            PassKind::GccrsPrivacy => "gccrs-privacy",
         };
 
         write!(f, "{}", s)
