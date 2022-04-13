@@ -47,5 +47,3 @@ impl Pass for RustcDejagnu {
         Ok(test_case)
     }
 }
-
-unsafe impl Sync for RustcDejagnu {}

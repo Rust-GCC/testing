@@ -42,6 +42,3 @@ impl Pass for GccrsParsing {
         Ok(test_case)
     }
 }
-
-// SAFETY: No data is kept in the struct, so we can safely use it across threads
-unsafe impl Sync for GccrsParsing {}
