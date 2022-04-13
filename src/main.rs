@@ -63,6 +63,9 @@ fn pass_dispatch(pass: &PassKind) -> Box<dyn Pass> {
     match pass {
         PassKind::GccrsParsing => Box::new(passes::GccrsParsing),
         PassKind::RustcDejagnu => Box::new(passes::RustcDejagnu),
+        PassKind::GccrsRustcSucess => Box::new(passes::GccrsRustcSuccesses::Full),
+        PassKind::GccrsRustcSucessNoStd => Box::new(passes::GccrsRustcSuccesses::NoStd),
+        PassKind::GccrsRustcSucessNoCore => Box::new(passes::GccrsRustcSuccesses::NoCore),
     }
 }
 
@@ -71,7 +74,12 @@ fn apply_pass(pass: &dyn Pass, args: &Args, files: &[PathBuf]) -> Result<String,
         .into_par_iter()
         .map(|file| pass.adapt(args, file))
         .try_fold(String::new, |acc, test_case: Result<_, Error>| {
-            Ok(format!("{}\n{}", acc, test_case?))
+            let test_case = test_case?;
+            if test_case.is_empty() {
+                Ok(acc)
+            } else {
+                Ok(format!("{}\n{}", acc, test_case))
+            }
         })
         .collect()
 }
