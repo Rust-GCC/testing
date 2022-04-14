@@ -10,9 +10,8 @@ pub struct GccrsParsing;
 
 impl Pass for GccrsParsing {
     fn fetch(&self, args: &Args) -> Result<Vec<PathBuf>, Error> {
-        // FIXME: Add more tests than just src/test/ui
         let rust_path = &args.rust_path;
-        let ui_tests = rust_path.join("src").join("test").join("ui");
+        let ui_tests = rust_path.join("src").join("test");
 
         copy_rs_files(&ui_tests, &args.output_dir, rust_path)
     }
@@ -20,6 +19,7 @@ impl Pass for GccrsParsing {
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
         let is_valid = Command::new(&args.rustc)
             // FIXME: We need to instead build a specific version of rustc to test against rather than using the user's
+            // FIXME: We can maybe instead use the rustc-ap-rustc_parse crate which would be much faster
             .env("RUSTC_BOOTSTRAP", "1")
             .arg("-Z")
             .arg("parse-only")
