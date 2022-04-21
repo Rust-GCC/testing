@@ -30,7 +30,7 @@ jobs:
       run: cargo clippy --all -- -Wclippy::pedantic
 
   # Generate an entire testsuite to make sure it completes properly
-  run:
+  full-run:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     needs: check
@@ -45,4 +45,7 @@ jobs:
           target/release/testsuite-adaptor --gccrs './rust1' --rustc rustc \
           --output-dir tmp-test-sources --yaml test.yml \
           --rust-path rust --gccrs-path local_gccrs \
-          --passes rustc-dejagnu gccrs-parsing
+          --passes rustc-dejagnu gccrs-parsing \
+          gccrs-rustc-success \
+          gccrs-rustc-success-no-core \
+          gccrs-rustc-success-no-std \
