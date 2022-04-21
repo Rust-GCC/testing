@@ -35,7 +35,7 @@ impl Pass for RustcDejagnu {
             exit_code
         };
 
-        let test_case = TestCase::default()
+        let test_case = TestCase::new()
             .with_name(format!("Run rustc on `{}`", file.display()))
             .with_binary(args.rustc.display())
             .with_exit_code(exit_code)
@@ -47,5 +47,3 @@ impl Pass for RustcDejagnu {
         Ok(test_case)
     }
 }
-
-unsafe impl Sync for RustcDejagnu {}
