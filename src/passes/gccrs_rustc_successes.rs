@@ -53,7 +53,7 @@ impl Pass for GccrsRustcSuccesses {
 
         // We're only interested in successes
         if test_content.contains("ERROR") {
-            return Ok(TestCase::default());
+            return Ok(TestCase::Skip);
         }
 
         let extra_str = match self {
@@ -88,11 +88,11 @@ impl Pass for GccrsRustcSuccesses {
             };
 
             if !is_valid {
-                return Ok(TestCase::default());
+                return Ok(TestCase::Skip);
             }
         }
 
-        let test_case = TestCase::default()
+        let test_case = TestCase::new()
             .with_name(format!("Compile {} success `{}`", self, file.display()))
             .with_binary(args.gccrs.display())
             .with_exit_code(0)

@@ -31,7 +31,7 @@ impl Pass for GccrsParsing {
             .status()?
             .success();
 
-        let test_case = TestCase::default()
+        let test_case = TestCase::new()
             .with_name(format!("Parse `{}`", file.display()))
             .with_binary(args.gccrs.display())
             .with_exit_code(if is_valid { 0 } else { 1 })

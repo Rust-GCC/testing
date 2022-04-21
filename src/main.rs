@@ -74,12 +74,7 @@ fn apply_pass(pass: &dyn Pass, args: &Args, files: &[PathBuf]) -> Result<String,
         .into_par_iter()
         .map(|file| pass.adapt(args, file))
         .try_fold(String::new, |acc, test_case: Result<_, Error>| {
-            let test_case = test_case?;
-            if test_case.is_empty() {
-                Ok(acc)
-            } else {
-                Ok(format!("{}\n{}", acc, test_case))
-            }
+            Ok(format!("{}{}", acc, test_case?))
         })
         .collect()
 }

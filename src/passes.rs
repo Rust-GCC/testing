@@ -16,71 +16,108 @@ use crate::{args::Args, error::Error};
 
 /// Wrapper struct around an ftf test case. Ideally, this should be provided
 /// directly by the ftf crate
-#[derive(Default, Debug)]
-pub struct TestCase {
-    name: String,
-    binary: String,
-    exit_code: u8,
-    timeout: i32,
-    stderr: String,
-    stdout: String,
-    args: Vec<String>,
+#[derive(Debug)]
+pub enum TestCase {
+    Test {
+        name: String,
+        binary: String,
+        exit_code: u8,
+        timeout: i32,
+        stderr: String,
+        stdout: String,
+        args: Vec<String>,
+    },
+    Skip,
 }
 
 impl TestCase {
-    pub fn with_exit_code(self, exit_code: u8) -> TestCase {
-        TestCase { exit_code, ..self }
-    }
-
-    pub fn with_timeout(self, timeout: i32) -> TestCase {
-        TestCase { timeout, ..self }
-    }
-
-    pub fn with_name(self, name: String) -> TestCase {
-        TestCase { name, ..self }
-    }
-
-    pub fn with_arg<T: Display>(self, arg: T) -> TestCase {
-        let mut new_args = self.args;
-        new_args.push(arg.to_string());
-
-        TestCase {
-            args: new_args,
-            ..self
+    pub fn new() -> TestCase {
+        TestCase::Test {
+            name: String::new(),
+            binary: String::new(),
+            exit_code: 0u8,
+            timeout: i32::MAX,
+            stderr: String::new(),
+            stdout: String::new(),
+            args: vec![],
         }
     }
 
-    pub fn with_binary<T: Display>(self, binary: T) -> TestCase {
-        TestCase {
-            binary: binary.to_string(),
-            ..self
+    pub fn with_exit_code(mut self, new_exit_code: u8) -> TestCase {
+        if let TestCase::Test {
+            ref mut exit_code, ..
+        } = self
+        {
+            *exit_code = new_exit_code;
         }
+
+        self
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.name.is_empty()
+    pub fn with_timeout(mut self, new_timeout: i32) -> TestCase {
+        if let TestCase::Test {
+            ref mut timeout, ..
+        } = self
+        {
+            *timeout = new_timeout;
+        }
+
+        self
+    }
+
+    pub fn with_name(mut self, new_name: String) -> TestCase {
+        if let TestCase::Test { ref mut name, .. } = self {
+            *name = new_name;
+        }
+
+        self
+    }
+
+    pub fn with_arg<T: Display>(mut self, arg: T) -> TestCase {
+        if let TestCase::Test { ref mut args, .. } = self {
+            args.push(arg.to_string());
+        }
+
+        self
+    }
+
+    pub fn with_binary<T: Display>(mut self, new_binary: T) -> TestCase {
+        if let TestCase::Test { ref mut binary, .. } = self {
+            *binary = new_binary.to_string();
+        }
+
+        self
     }
 }
 
 impl Display for TestCase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "  - name: {}", self.name)?;
-        writeln!(f, "    binary: {}", self.binary)?;
-        writeln!(f, "    timeout: {}", self.timeout)?;
-        writeln!(f, "    exit_code: {}", self.exit_code)?;
-        if !self.stdout.is_empty() {
-            writeln!(f, "    stdout: \"{}\"", self.stdout)?;
-        }
-        if !self.stderr.is_empty() {
-            writeln!(f, "    stderr: \"{}\"", self.stderr)?;
-        }
-        writeln!(f, "    args:")?;
+        match self {
+            TestCase::Skip => Ok(()),
+            TestCase::Test {
+                name,
+                binary,
+                exit_code,
+                timeout,
+                stderr,
+                stdout,
+                args,
+            } => {
+                writeln!(f, "  - name: {}", name)?;
+                writeln!(f, "    binary: {}", binary)?;
+                writeln!(f, "    timeout: {}", timeout)?;
+                writeln!(f, "    exit_code: {}", exit_code)?;
+                writeln!(f, "    stdout: \"{}\"", stdout)?;
+                writeln!(f, "    stderr: \"{}\"", stderr)?;
+                writeln!(f, "    args:")?;
 
-        for arg in &self.args {
-            writeln!(f, "      - \"{}\"", arg)?;
-        }
+                for arg in args {
+                    writeln!(f, "      - \"{}\"", arg)?;
+                }
 
-        Ok(())
+                Ok(())
+            }
+        }
     }
 }
 
