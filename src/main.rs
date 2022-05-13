@@ -66,6 +66,7 @@ fn pass_dispatch(pass: &PassKind) -> Box<dyn Pass> {
         PassKind::GccrsRustcSucess => Box::new(passes::GccrsRustcSuccesses::Full),
         PassKind::GccrsRustcSucessNoStd => Box::new(passes::GccrsRustcSuccesses::NoStd),
         PassKind::GccrsRustcSucessNoCore => Box::new(passes::GccrsRustcSuccesses::NoCore),
+        PassKind::Blake3 => Box::new(passes::Blake3),
     }
 }
 

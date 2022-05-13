@@ -49,3 +49,4 @@ jobs:
           gccrs-rustc-success \
           gccrs-rustc-success-no-core \
           gccrs-rustc-success-no-std \
+          blake3 \
