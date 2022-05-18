@@ -4,7 +4,7 @@ Testing gccrs in the wild
 
 ## Requirements
 
-### ftf >= 0.4
+### [ftf](https://github.com/CohenArthur/ftf) >= 0.4
 
 `cargo install ftf`
 
