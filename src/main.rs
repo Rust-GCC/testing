@@ -66,11 +66,10 @@ fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
         PassKind::GccrsRustcSucess => vec![Box::new(passes::GccrsRustcSuccesses::Full)],
         PassKind::GccrsRustcSucessNoStd => vec![Box::new(passes::GccrsRustcSuccesses::NoStd)],
         PassKind::GccrsRustcSucessNoCore => vec![Box::new(passes::GccrsRustcSuccesses::NoCore)],
-        PassKind::Blake3 => vec![
-            Box::new(passes::Blake3),
-            Box::new(passes::Blake3),
-            Box::new(passes::Blake3),
-        ],
+        PassKind::Blake3 => passes::Blake3::variants()
+            .into_iter()
+            .map(|blake_variant| Box::new(blake_variant) as Box<dyn Pass>)
+            .collect(),
     }
 }
 
