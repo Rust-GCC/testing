@@ -1,0 +1,47 @@
+name: gccrs-testing-nightly-run
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run at 2 AM UTC. Does not really matter
+
+jobs:
+  run-testsuites:
+    runs-on: self-hosted
+    container: philberty/gccrs:latest
+    strategy:
+      matrix:
+        testsuite: [rustc-dejagnu, gccrs-parsing, gccrs-rustc-success, gccrs-rustc-success-no-std, gccrs-rustc-success-no-core, blake3, libcore-1.49]
+    steps:
+      - name: Fetch dependencies
+        run: |
+          # FIXME: Switch to `cargo install ftf` on next release, we need the
+          # `result-fmt` feature
+          cargo install --git https://github.com/cohenarthur/ftf
+
+      - uses: actions/checkout@v2
+      - name: Generate testsuites (nightly)
+        run: |
+          cargo build --release
+          git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
+          git submodule update --init
+          target/release/testsuite-adaptor --gccrs rust1 --rustc rustc \
+              --output-dir output-dir-${{ matrix.testsuite }} \
+              --yaml ${{ matrix.testsuite }}.yaml \
+              --rust-path rust --gccrs-path local_gccrs \
+              --passes ${{ matrix.testsuite }}
+
+      - name: Run testsuite
+        run: |
+          echo "{ \"name\": \"${{matrix.testsuite}}\", \"commit\": \"$(cat /GCCRS_BUILD)\", \"date\": \"$(date -I)\", \"results\": " >> ${{ matrix.testsuite }}.json
+
+          # FIXME: Hack: This allows us to access `rust1` directly.
+          # Figure out a better way to do it
+          PATH=/usr/local/libexec/gcc/x86_64-pc-linux-gnu/12.0.1/:$PATH ftf -f ${{ matrix.testsuite }}.yaml -j$(nproc) --result-fmt "{ \"tests\": %t, \"passes\": %p, \"failures\": %f }" | tee log;
+
+          tail -n 1 log >> ${{ matrix.testsuite }}.json
+          echo "}" >> ${{ matrix.testsuite }}.json
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.testsuite }}.json
+          path: ${{ matrix.testsuite }}.json
