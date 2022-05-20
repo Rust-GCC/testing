@@ -1,7 +1,9 @@
+mod blake3;
 mod gccrs_parsing;
 mod gccrs_rustc_successes;
 mod rustc_dejagnu;
 
+pub use blake3::Blake3;
 pub use gccrs_parsing::GccrsParsing;
 pub use gccrs_rustc_successes::GccrsRustcSuccesses;
 pub use rustc_dejagnu::RustcDejagnu;
@@ -144,6 +146,8 @@ pub enum PassKind {
     GccrsRustcSucessNoStd,
     /// Testsuite for running gccrs on valid rustc test cases in #![no_core] mode
     GccrsRustcSucessNoCore,
+    /// Compile the reference implementation of the Blake3 cryptographic algorithm
+    Blake3,
 }
 
 #[derive(Debug)]
@@ -165,6 +169,7 @@ impl FromStr for PassKind {
             "gccrs-rustc-success" => Ok(PassKind::GccrsRustcSucess),
             "gccrs-rustc-success-no-std" => Ok(PassKind::GccrsRustcSucessNoStd),
             "gccrs-rustc-success-no-core" => Ok(PassKind::GccrsRustcSucessNoCore),
+            "blake3" => Ok(PassKind::Blake3),
             s => Err(InvalidPassKind(s.to_string())),
         }
     }
@@ -178,6 +183,7 @@ impl Display for PassKind {
             PassKind::GccrsRustcSucess => "gccrs-rustc-success",
             PassKind::GccrsRustcSucessNoStd => "gccrs-rustc-success-no-std",
             PassKind::GccrsRustcSucessNoCore => "gccrs-rustc-success-no-core",
+            PassKind::Blake3 => "blake3",
         };
 
         write!(f, "{}", s)

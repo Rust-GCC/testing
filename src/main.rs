@@ -59,13 +59,17 @@ pub fn copy_rs_files(
         .collect()
 }
 
-fn pass_dispatch(pass: &PassKind) -> Box<dyn Pass> {
+fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
     match pass {
-        PassKind::GccrsParsing => Box::new(passes::GccrsParsing),
-        PassKind::RustcDejagnu => Box::new(passes::RustcDejagnu),
-        PassKind::GccrsRustcSucess => Box::new(passes::GccrsRustcSuccesses::Full),
-        PassKind::GccrsRustcSucessNoStd => Box::new(passes::GccrsRustcSuccesses::NoStd),
-        PassKind::GccrsRustcSucessNoCore => Box::new(passes::GccrsRustcSuccesses::NoCore),
+        PassKind::GccrsParsing => vec![Box::new(passes::GccrsParsing)],
+        PassKind::RustcDejagnu => vec![Box::new(passes::RustcDejagnu)],
+        PassKind::GccrsRustcSucess => vec![Box::new(passes::GccrsRustcSuccesses::Full)],
+        PassKind::GccrsRustcSucessNoStd => vec![Box::new(passes::GccrsRustcSuccesses::NoStd)],
+        PassKind::GccrsRustcSucessNoCore => vec![Box::new(passes::GccrsRustcSuccesses::NoCore)],
+        PassKind::Blake3 => passes::Blake3::variants()
+            .into_iter()
+            .map(|blake_variant| Box::new(blake_variant) as Box<dyn Pass>)
+            .collect(),
     }
 }
 
@@ -112,22 +116,28 @@ fn main() -> anyhow::Result<()> {
         .map(|pass_kind| {
             log!("running pass `{}`...", pass_kind);
 
-            let pass = pass_dispatch(pass_kind);
+            let passes = pass_dispatch(pass_kind);
 
-            log!("fetching test files for `{}`...", pass_kind);
+            passes
+                .iter()
+                .map(|pass| {
+                    log!("fetching test files for `{}`...", pass_kind);
 
-            let files = pass.fetch(&args)?;
+                    let files = pass.fetch(&args)?;
 
-            log!(
-                "generating test cases for `{}`... this might take a while",
-                pass_kind
-            );
+                    log!(
+                        "generating test cases for `{}`... this might take a while",
+                        pass_kind
+                    );
 
-            let test_suite = apply_pass(&*pass, &args, &files)?;
+                    // This is ugly!
+                    let test_suite = apply_pass(&**pass, &args, &files)?;
 
-            log!("`{}` pass complete!", pass_kind);
+                    log!("`{}` pass complete!", pass_kind);
 
-            Ok(test_suite)
+                    Ok(test_suite)
+                })
+                .collect()
         })
         .collect();
 
