@@ -70,6 +70,7 @@ fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
             .into_iter()
             .map(|blake_variant| Box::new(blake_variant) as Box<dyn Pass>)
             .collect(),
+        PassKind::LibCore149 => vec![Box::new(passes::LibCore::V149)],
     }
 }
 

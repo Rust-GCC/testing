@@ -50,3 +50,4 @@ jobs:
           gccrs-rustc-success-no-core \
           gccrs-rustc-success-no-std \
           blake3 \
+          libcore-1.49 \

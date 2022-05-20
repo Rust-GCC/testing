@@ -1,6 +1,14 @@
 use std::convert::From;
 
 #[derive(Debug, thiserror::Error)]
+pub enum MiscKind {
+    /// Error when checking out a specific tag or commit in a particular repo
+    /// used when generating test suites
+    #[error("git error: `git {arg_string}`")]
+    Git { arg_string: String },
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("{0}")]
     Io(std::io::Error),
@@ -12,6 +20,8 @@ pub enum Error {
     PathPrefix(std::path::StripPrefixError),
     #[error("{0}")]
     WalkDir(walkdir::Error),
+    #[error("{0}")]
+    Misc(MiscKind),
 }
 
 impl From<std::io::Error> for Error {
