@@ -40,7 +40,8 @@ impl TestCase {
             name: String::new(),
             binary: String::new(),
             exit_code: 0u8,
-            timeout: i32::MAX,
+            // FIXME: Use duration here (#10)
+            timeout: 15 * 60, // default timeout is 15 minutes
             stderr: String::new(),
             stdout: String::new(),
             args: vec![],
