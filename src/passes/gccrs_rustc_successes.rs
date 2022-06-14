@@ -96,7 +96,8 @@ impl Pass for GccrsRustcSuccesses {
             .with_name(format!("Compile {} success `{}`", self, file.display()))
             .with_binary(args.gccrs.display())
             .with_exit_code(0)
-            .with_timeout(5)
+            // FIXME: Use proper duration here (#10)
+            .with_timeout(5 * 60) // ftf's timeout is in seconds, so 5 minutes
             .with_arg(file.display());
 
         Ok(test_case)
