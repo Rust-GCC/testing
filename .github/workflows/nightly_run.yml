@@ -37,7 +37,7 @@ jobs:
 
           # FIXME: Hack: This allows us to access `rust1` directly.
           # Figure out a better way to do it
-          PATH=/usr/local/libexec/gcc/x86_64-pc-linux-gnu/12.0.1/:$PATH ftf -f ${{ matrix.testsuite }}.yaml -j$(nproc) --result-fmt "{ \"tests\": %t, \"passes\": %p, \"failures\": %f }" | tee log;
+          PATH=/usr/local/libexec/gcc/x86_64-pc-linux-gnu/12.0.1/:$PATH ftf -f ${{ matrix.testsuite }}.yaml -j 1 --result-fmt "{ \"tests\": %t, \"passes\": %p, \"failures\": %f }" | tee log;
 
           tail -n 1 log >> ${{ matrix.testsuite }}.json
           echo "}" >> ${{ matrix.testsuite }}.json
