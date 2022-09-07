@@ -151,8 +151,8 @@ pub enum PassKind {
     GccrsRustcSucessNoCore,
     /// Compile the reference implementation of the Blake3 cryptographic algorithm
     Blake3,
-    /// Compile libcore from rust 1.49.0
-    LibCore149,
+    /// Compile the core library from various rust versions
+    LibCore,
 }
 
 #[derive(Debug)]
@@ -175,7 +175,7 @@ impl FromStr for PassKind {
             "gccrs-rustc-success-no-std" => Ok(PassKind::GccrsRustcSucessNoStd),
             "gccrs-rustc-success-no-core" => Ok(PassKind::GccrsRustcSucessNoCore),
             "blake3" => Ok(PassKind::Blake3),
-            "libcore-1.49" => Ok(PassKind::LibCore149),
+            "libcore" => Ok(PassKind::LibCore),
             s => Err(InvalidPassKind(s.to_string())),
         }
     }
@@ -190,7 +190,7 @@ impl Display for PassKind {
             PassKind::GccrsRustcSucessNoStd => "gccrs-rustc-success-no-std",
             PassKind::GccrsRustcSucessNoCore => "gccrs-rustc-success-no-core",
             PassKind::Blake3 => "blake3",
-            PassKind::LibCore149 => "libcore-1.49",
+            PassKind::LibCore => "libcore",
         };
 
         write!(f, "{}", s)

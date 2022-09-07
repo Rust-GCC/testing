@@ -2,6 +2,7 @@ mod args;
 mod error;
 mod log;
 mod passes;
+mod steps;
 
 use std::ffi::OsStr;
 use std::fs::{self, OpenOptions};
@@ -13,6 +14,7 @@ use error::Error;
 use passes::{Pass, PassKind};
 
 use rayon::prelude::*;
+use steps::CompileStep;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 use which::which;
@@ -70,7 +72,20 @@ fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
             .into_iter()
             .map(|blake_variant| Box::new(blake_variant) as Box<dyn Pass>)
             .collect(),
-        PassKind::LibCore149 => vec![Box::new(passes::LibCore::V149)],
+        // FIXME: Ugly nested multi version + multi step hack
+        PassKind::LibCore => vec![
+            CompileStep::variants()
+                .into_iter()
+                .map(|step| Box::new(passes::LibCore::V149(step)) as Box<dyn Pass>)
+                .collect::<Vec<Box<dyn Pass>>>(),
+            CompileStep::variants()
+                .into_iter()
+                .map(|step| Box::new(passes::LibCore::V129(step)) as Box<dyn Pass>)
+                .collect::<Vec<Box<dyn Pass>>>(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect(),
     }
 }
 
