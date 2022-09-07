@@ -106,13 +106,14 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoGccrs(args.gccrs_path).into());
     }
 
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(args.jobs)
+        .build_global()?;
+
     warn_on_file_not_found("rustc", &args.rustc);
     warn_on_file_not_found("gccrs", &args.gccrs);
 
     let ftf_header = String::from("tests:\n");
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(args.jobs)
-        .build_global()?;
 
     let test_suites: Result<Vec<String>, Error> = args
         .passes
