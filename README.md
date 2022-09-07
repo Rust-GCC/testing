@@ -59,18 +59,19 @@ Directory to create and in which to store the adapted test cases. The directory 
 
 Path of the `ftf` test-suite file to create.
 
-### --passes,-p
+### --pass,-p
 
-List of passes to run and generate a test suite from. The currently available passes are
+Pass to run and generate a test suite from. The currently available passes are
 
 |Pass|Description|
 |---|---|
 |gccrs-parsing|Tests `gccrs`'s parser. This allows testing `gccrs` against `rustc` in parsing-mode (`-Z parse-only` and `-fsyntax-only`)|
 |rustc-dejagnu|Launch `rustc` against our dejagnu testsuite. This allows validating `gccrs`'s testsuite, making sure that tests are proper rust code|
-
-You can give multiple values to this option as it takes a vector of passes. Generating multiple test-suites at once would look like so `--passes gccrs-parsing rustc-dejagnu`.
-
-A single YAML file is generated, even for multiple passes.
+|gccrs-rustc-success|Launch `gccrs` against all successful testcases in the `rustc` testsuite|
+|gccrs-rustc-success-no-std|Launch `gccrs` against all successful testcases in the `rustc` testsuite in `#[no_std]` mode|
+|gccrs-rustc-success-no-core|Launch `gccrs` against all successful testcases in the `rustc` testsuite in `#[no_core]` mode|
+|blake3|Launch `gccrs` on the Blake3 cryptography project|
+|libcore|Launch `gccrs` on various version of the core library|
 
 ## Running the test-suite
 
@@ -85,7 +86,7 @@ If everything went smoothly, you should simply be able to run `ftf` on the gener
 	--gccrs './rust1' --rustc rustc \
 	--gccrs-path gccrs/ --rust_path rust/ \
 	--output-dir sources/ --yaml testsuite.yml \
-	--passes gccrs-parsing rustc-dejagnu
+	--pass gccrs-parsing
 > ftf -f testsuite.yml -j$(nproc)
 ```
 

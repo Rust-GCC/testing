@@ -130,34 +130,28 @@ fn main() -> anyhow::Result<()> {
 
     let ftf_header = String::from("tests:\n");
 
-    let test_suites: Result<Vec<String>, Error> = args
-        .passes
-        .par_iter()
-        .map(|pass_kind| {
-            log!("running pass `{}`...", pass_kind);
+    let pass_kind = &args.pass;
+    let passes = pass_dispatch(pass_kind);
+    log!("running pass `{}`...", pass_kind);
 
-            let passes = pass_dispatch(pass_kind);
+    let test_suites: Result<Vec<String>, Error> = passes
+        .iter()
+        .map(|pass| {
+            log!("fetching test files for `{}`...", pass_kind);
 
-            passes
-                .iter()
-                .map(|pass| {
-                    log!("fetching test files for `{}`...", pass_kind);
+            let files = pass.fetch(&args)?;
 
-                    let files = pass.fetch(&args)?;
+            log!(
+                "generating test cases for `{}`... this might take a while",
+                pass_kind
+            );
 
-                    log!(
-                        "generating test cases for `{}`... this might take a while",
-                        pass_kind
-                    );
+            // This is ugly!
+            let test_suite = apply_pass(&**pass, &args, &files)?;
 
-                    // This is ugly!
-                    let test_suite = apply_pass(&**pass, &args, &files)?;
+            log!("`{}` pass complete!", pass_kind);
 
-                    log!("`{}` pass complete!", pass_kind);
-
-                    Ok(test_suite)
-                })
-                .collect()
+            Ok(test_suite)
         })
         .collect();
 
