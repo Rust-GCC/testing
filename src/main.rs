@@ -110,6 +110,9 @@ fn main() -> anyhow::Result<()> {
     warn_on_file_not_found("gccrs", &args.gccrs);
 
     let ftf_header = String::from("tests:\n");
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(args.jobs)
+        .build_global()?;
 
     let test_suites: Result<Vec<String>, Error> = args
         .passes
