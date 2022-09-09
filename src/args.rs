@@ -24,4 +24,6 @@ pub struct Args {
     pub(crate) gccrs_path: PathBuf,
     #[structopt(short, long, help = "passes to to run in the adaptor")]
     pub(crate) passes: Vec<PassKind>,
+    #[structopt(short, long, help = "amount of threads to use", default_value = "1")]
+    pub(crate) jobs: usize,
 }
