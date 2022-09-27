@@ -6,16 +6,24 @@ use crate::args::Args;
 use crate::copy_rs_files;
 use crate::error::{Error, MiscKind};
 use crate::passes::{Pass, TestCase};
+use crate::steps::CompileStep;
 
 pub enum LibCore {
-    // libcore from rustc 1.49.0
-    V149,
+    V149(CompileStep),
+    V129(CompileStep),
 }
 
 impl LibCore {
     fn tag(&self) -> &str {
         match self {
-            LibCore::V149 => "1.49.0",
+            LibCore::V149(_) => "1.49.0",
+            LibCore::V129(_) => "1.29.0",
+        }
+    }
+
+    fn step(&self) -> &CompileStep {
+        match self {
+            LibCore::V149(step) | LibCore::V129(step) => step,
         }
     }
 }
@@ -48,7 +56,7 @@ impl Pass for LibCore {
 
         copy_rs_files(&core_path, &args.output_dir, rust_path)?;
 
-        rust_git(vec!["switch", "-"])?;
+        rust_git(vec!["checkout", "master"])?;
 
         // We only want to compile a single file, and the others as modules
         Ok(vec![args
@@ -60,9 +68,14 @@ impl Pass for LibCore {
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
         Ok(TestCase::new()
-            .with_name(format!("Compiling libcore {}", self.tag()))
+            .with_name(format!(
+                "Compiling libcore {} ({} step)",
+                self.tag(),
+                self.step().compile_option()
+            ))
             .with_binary(args.gccrs.display())
             .with_arg(file.display())
+            .with_arg(self.step().compile_option())
             .with_exit_code(0))
     }
 }
