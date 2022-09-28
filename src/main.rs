@@ -121,42 +121,37 @@ fn main() -> anyhow::Result<()> {
         return Err(Error::NoGccrs(args.gccrs_path).into());
     }
 
-    warn_on_file_not_found("rustc", &args.rustc);
-    warn_on_file_not_found("gccrs", &args.gccrs);
-
-    let ftf_header = String::from("tests:\n");
     rayon::ThreadPoolBuilder::new()
         .num_threads(args.jobs)
         .build_global()?;
 
-    let test_suites: Result<Vec<String>, Error> = args
-        .passes
-        .par_iter()
-        .map(|pass_kind| {
-            log!("running pass `{}`...", pass_kind);
+    warn_on_file_not_found("rustc", &args.rustc);
+    warn_on_file_not_found("gccrs", &args.gccrs);
 
-            let passes = pass_dispatch(pass_kind);
+    let ftf_header = String::from("tests:\n");
 
-            passes
-                .iter()
-                .map(|pass| {
-                    log!("fetching test files for `{}`...", pass_kind);
+    let pass_kind = &args.pass;
+    let passes = pass_dispatch(pass_kind);
+    log!("running pass `{}`...", pass_kind);
 
-                    let files = pass.fetch(&args)?;
+    let test_suites: Result<Vec<String>, Error> = passes
+        .iter()
+        .map(|pass| {
+            log!("fetching test files for `{}`...", pass_kind);
 
-                    log!(
-                        "generating test cases for `{}`... this might take a while",
-                        pass_kind
-                    );
+            let files = pass.fetch(&args)?;
 
-                    // This is ugly!
-                    let test_suite = apply_pass(&**pass, &args, &files)?;
+            log!(
+                "generating test cases for `{}`... this might take a while",
+                pass_kind
+            );
 
-                    log!("`{}` pass complete!", pass_kind);
+            // This is ugly!
+            let test_suite = apply_pass(&**pass, &args, &files)?;
 
-                    Ok(test_suite)
-                })
-                .collect()
+            log!("`{}` pass complete!", pass_kind);
+
+            Ok(test_suite)
         })
         .collect();
 
