@@ -79,12 +79,11 @@ impl Pass for GccrsRustcSuccesses {
                 .stdout(Stdio::null())
                 .spawn()?;
 
-            let is_valid = match child.wait_timeout(Duration::from_secs(30))? {
-                Some(status) => status.success(),
-                None => {
-                    child.kill()?;
-                    false
-                }
+            let is_valid = if let Some(status) = child.wait_timeout(Duration::from_secs(30))? {
+                status.success()
+            } else {
+                child.kill()?;
+                false
             };
 
             if !is_valid {
