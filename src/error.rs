@@ -1,5 +1,7 @@
 use std::convert::From;
 
+use std::num::TryFromIntError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum MiscKind {
     /// Error when checking out a specific tag or commit in a particular repo
@@ -22,6 +24,8 @@ pub enum Error {
     WalkDir(walkdir::Error),
     #[error("{0}")]
     Misc(MiscKind),
+    #[error("invalid exit code: expected value to fit in `u8`: {0}")]
+    ExitCodeConversion(TryFromIntError),
 }
 
 impl From<std::io::Error> for Error {
@@ -39,5 +43,11 @@ impl From<std::path::StripPrefixError> for Error {
 impl From<walkdir::Error> for Error {
     fn from(e: walkdir::Error) -> Self {
         Error::WalkDir(e)
+    }
+}
+
+impl From<TryFromIntError> for Error {
+    fn from(e: TryFromIntError) -> Self {
+        Error::ExitCodeConversion(e)
     }
 }

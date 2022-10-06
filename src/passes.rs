@@ -1,9 +1,11 @@
+mod ast_export;
 mod blake3;
 mod gccrs_parsing;
 mod gccrs_rustc_successes;
 mod libcore;
 mod rustc_dejagnu;
 
+pub use ast_export::AstExport;
 pub use blake3::Blake3;
 pub use gccrs_parsing::GccrsParsing;
 pub use gccrs_rustc_successes::GccrsRustcSuccesses;
@@ -153,6 +155,8 @@ pub enum PassKind {
     Blake3,
     /// Compile the core library from various rust versions
     LibCore,
+    /// Test our AST exporting algorithm on the whole gccrs testsuite
+    AstExport,
 }
 
 #[derive(Debug)]
@@ -176,6 +180,7 @@ impl FromStr for PassKind {
             "gccrs-rustc-success-no-core" => Ok(PassKind::GccrsRustcSucessNoCore),
             "blake3" => Ok(PassKind::Blake3),
             "libcore" => Ok(PassKind::LibCore),
+            "ast-export" => Ok(PassKind::AstExport),
             s => Err(InvalidPassKind(s.to_string())),
         }
     }
@@ -191,6 +196,7 @@ impl Display for PassKind {
             PassKind::GccrsRustcSucessNoCore => "gccrs-rustc-success-no-core",
             PassKind::Blake3 => "blake3",
             PassKind::LibCore => "libcore",
+            PassKind::AstExport => "ast-export",
         };
 
         write!(f, "{}", s)
