@@ -1,4 +1,5 @@
 mod args;
+mod compiler;
 mod error;
 mod log;
 mod passes;
