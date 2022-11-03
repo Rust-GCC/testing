@@ -1,4 +1,5 @@
 use crate::args::Args;
+use crate::compiler::{Compiler, Edition, Kind};
 use crate::copy_rs_files;
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
@@ -6,7 +7,6 @@ use crate::passes::{Pass, TestCase};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::time::Duration;
 
 use wait_timeout::ChildExt;
@@ -65,18 +65,13 @@ impl Pass for GccrsRustcSuccesses {
         fs::write(file, format!("{}{}", extra_str, test_content))?;
 
         if let GccrsRustcSuccesses::NoStd | GccrsRustcSuccesses::NoCore = self {
-            // We should really think about having rustc as a library here :D
-            // TODO: Refactor this into a wrapper available to all passes, since it's quite useful
-            let mut child = Command::new(&args.rustc)
-                .arg("--edition")
-                .arg("2021")
-                .arg("--crate-name")
-                .arg("rustc_output")
+            let mut child = Compiler::new(Kind::RustcBootstrap, args)
+                .edition(Edition::E2021)
+                .crate_name("rustc_output")
+                .command()
                 .arg("--crate-type")
                 .arg("lib")
                 .arg(file.as_os_str())
-                .stderr(Stdio::null())
-                .stdout(Stdio::null())
                 .spawn()?;
 
             let is_valid = if let Some(status) = child.wait_timeout(Duration::from_secs(30))? {

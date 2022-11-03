@@ -1,10 +1,10 @@
 use crate::args::Args;
+use crate::compiler::{Compiler, Edition, Kind};
 use crate::copy_rs_files;
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 pub struct GccrsParsing;
 
@@ -17,17 +17,14 @@ impl Pass for GccrsParsing {
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        let is_valid = Command::new(&args.rustc)
+        let is_valid = Compiler::new(Kind::RustcBootstrap, args)
+            .edition(Edition::E2021)
+            .command()
             // FIXME: We need to instead build a specific version of rustc to test against rather than using the user's
             // FIXME: We can maybe instead use the rustc-ap-rustc_parse crate which would be much faster
-            .env("RUSTC_BOOTSTRAP", "1")
             .arg("-Z")
             .arg("parse-only")
-            .arg("--edition")
-            .arg("2021")
             .arg(file.as_os_str())
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
             .status()?
             .success();
 
