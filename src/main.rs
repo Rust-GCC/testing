@@ -26,6 +26,16 @@ fn maybe_create_output_dir(path: &Path) -> Result<(), Error> {
     Ok(())
 }
 
+/// Fetch a list of all the rust files (*.rs) contained in a directory and return their path
+#[must_use]
+pub fn fetch_rust_files(from: &Path) -> Vec<walkdir::DirEntry> {
+    WalkDir::new(from)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension() == Some(OsStr::new("rs")))
+        .collect()
+}
+
 /// Copies `*.rs` files from the path `from` to the path `to`, while stripping the prefix
 /// `prefix_to_strip` from the path.
 ///
@@ -40,11 +50,8 @@ pub fn copy_rs_files(
     to: &Path,
     prefix_to_strip: &Path,
 ) -> Result<Vec<PathBuf>, Error> {
-    WalkDir::new(from)
-        .into_iter()
-        // FIXME: We can skip some known test with issues here
-        .filter_map(Result::ok)
-        .filter(|entry| entry.path().extension() == Some(OsStr::new("rs")))
+    fetch_rust_files(from)
+        .into_par_iter()
         .map(move |entry| {
             let old_path = entry.path();
             let new_path = old_path.strip_prefix(&prefix_to_strip)?;
@@ -86,6 +93,10 @@ fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
         .into_iter()
         .flatten()
         .collect(),
+        PassKind::AstExport => vec![
+            Box::new(passes::AstExport::Compile),
+            Box::new(passes::AstExport::Run),
+        ],
     }
 }
 
