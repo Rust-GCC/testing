@@ -50,7 +50,11 @@ impl CommandExt for Command {
     fn default_args<'cmd>(&'cmd mut self, kind: &Kind) -> &'cmd mut Command {
         match kind {
             // specify Rust language by default, which allows us to compile Rust files with funny extensions
-            Kind::Gccrs => self.arg("-x").arg("rust"),
+            // use experimental flag
+            Kind::Gccrs => self
+                .arg("-frust-incomplete-and-experimental-compiler-do-not-use")
+                .arg("-x")
+                .arg("rust"),
             Kind::RustcBootstrap => self,
         }
     }
