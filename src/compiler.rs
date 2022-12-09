@@ -22,19 +22,21 @@ impl Edition {
 }
 
 /// All compiler kinds used in the testsuite
+#[derive(Clone, Copy)]
 pub enum Kind {
     Gccrs,
     RustcBootstrap,
 }
 
 /// All crate types used in the testsuite
+#[derive(Clone, Copy)]
 pub enum CrateType {
     Library,
 }
 
 impl Kind {
     /// Get the path associated with a specific compiler kind
-    fn as_path_from_args<'args>(&self, args: &'args Args) -> &'args Path {
+    fn as_path_from_args(self, args: &Args) -> &Path {
         match self {
             Kind::Gccrs => &args.gccrs,
             Kind::RustcBootstrap => &args.rustc,
@@ -45,14 +47,14 @@ impl Kind {
 /// Extend the [`Command`] type with functions associated with the compiler we're going to run
 trait CommandExt {
     /// Set the default arguments for a specific compiler
-    fn default_args(&mut self, kind: &Kind) -> &mut Command;
+    fn default_args(&mut self, kind: Kind) -> &mut Command;
 
     /// Set the default environment variables for a specific compiler
-    fn default_env(&mut self, kind: &Kind) -> &mut Command;
+    fn default_env(&mut self, kind: Kind) -> &mut Command;
 }
 
 impl CommandExt for Command {
-    fn default_args<'cmd>(&'cmd mut self, kind: &Kind) -> &'cmd mut Command {
+    fn default_args(&mut self, kind: Kind) -> &mut Command {
         match kind {
             // specify Rust language by default, which allows us to compile Rust files with funny extensions
             // use experimental flag
@@ -64,7 +66,7 @@ impl CommandExt for Command {
         }
     }
 
-    fn default_env(&mut self, kind: &Kind) -> &mut Command {
+    fn default_env(&mut self, kind: Kind) -> &mut Command {
         match kind {
             Kind::Gccrs => self,
             Kind::RustcBootstrap => self.env("RUSTC_BOOTSTRAP", "1"),
@@ -135,7 +137,7 @@ impl Compiler {
     /// and should only be done as the last step of the building process. You can then choose to pass
     /// additional arguments, spawn the command, etc... as you would with a regularly built [`Command`]
     pub fn command(&mut self) -> &mut Command {
-        let kind = &self.kind;
+        let kind = self.kind;
 
         self.cmd
             .default_args(kind)

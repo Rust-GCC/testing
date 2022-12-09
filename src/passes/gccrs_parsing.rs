@@ -28,9 +28,7 @@ impl Pass for GccrsParsing {
             .status()?
             .success();
 
-        let mut gccrs = Compiler::new(Kind::Gccrs, args);
-
-        let test_case = TestCase::from_cmd(gccrs.command())
+        let test_case = TestCase::from_compiler(Compiler::new(Kind::Gccrs, args))
             .with_name(format!("Parse `{}`", file.display()))
             .with_exit_code(if is_valid { 0 } else { 1 })
             .with_timeout(1)

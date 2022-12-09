@@ -12,14 +12,12 @@ pub use gccrs_rustc_successes::GccrsRustcSuccesses;
 pub use libcore::LibCore;
 pub use rustc_dejagnu::RustcDejagnu;
 
-use std::{
-    ffi::OsStr,
-    fmt::Display,
-    path::{Path, PathBuf},
-    process::Command,
-    str::FromStr,
-};
+use std::ffi::OsStr;
+use std::fmt::Display;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
+use crate::compiler::Compiler;
 use crate::{args::Args, error::Error};
 
 /// Wrapper struct around an ftf test case. Ideally, this should be provided
@@ -38,10 +36,8 @@ pub enum TestCase {
     Skip,
 }
 
-impl TestCase {
-    const DEFAULT_TIMEOUT: i32 = 15 * 60; // default timeout is 15 minutes
-
-    fn new() -> TestCase {
+impl Default for TestCase {
+    fn default() -> Self {
         TestCase::Test {
             name: String::new(),
             binary: String::new(),
@@ -53,9 +49,14 @@ impl TestCase {
             args: vec![],
         }
     }
+}
 
-    pub fn from_cmd(cmd: &Command) -> TestCase {
-        TestCase::new()
+impl TestCase {
+    const DEFAULT_TIMEOUT: i32 = 15; // default timeout is 15 minutes
+
+    pub fn from_compiler(mut compiler: Compiler) -> TestCase {
+        let cmd = compiler.command();
+        TestCase::default()
             .with_binary(cmd.get_program().to_string_lossy().to_string())
             .with_args(cmd.get_args().map(OsStr::to_string_lossy))
     }

@@ -68,9 +68,7 @@ impl Pass for LibCore {
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        let mut compiler = Compiler::new(Kind::Gccrs, args);
-
-        Ok(TestCase::from_cmd(compiler.command())
+        Ok(TestCase::from_compiler(Compiler::new(Kind::Gccrs, args))
             .with_name(format!(
                 "Compiling libcore {} ({} step)",
                 self.tag(),

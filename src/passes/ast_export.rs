@@ -29,9 +29,8 @@ fn adapt_compilation(args: &Args, pretty_file: &Path) -> Result<TestCase, Error>
         .status()?
         .success();
 
-    let test_case = TestCase::new()
+    let test_case = TestCase::from_compiler(Compiler::new(Kind::Gccrs, args))
         .with_name(format!("Compile prettified `{}`", original_file.display()))
-        .with_binary(args.gccrs.display())
         .with_exit_code(if is_valid { 0 } else { 1 })
         .with_arg(pretty_file.display());
 
@@ -86,7 +85,7 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
 
             // TODO: Should we also check that the output is the same?
             // TODO: Maybe just for stdout but not stderr as we do not guarantee the same exact output? So location info might be different
-            let test_case = TestCase::new()
+            let test_case = TestCase::default()
                 .with_name(format!(
                     "Run prettified binary from `{}`",
                     original_file.display()

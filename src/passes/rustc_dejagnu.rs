@@ -1,4 +1,5 @@
 use crate::args::Args;
+use crate::compiler::{Compiler, Kind};
 use crate::copy_rs_files;
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
@@ -31,9 +32,8 @@ impl Pass for RustcDejagnu {
             exit_code
         };
 
-        let test_case = TestCase::new()
+        let test_case = TestCase::from_compiler(Compiler::new(Kind::RustcBootstrap, args))
             .with_name(format!("Run rustc on `{}`", file.display()))
-            .with_binary(args.rustc.display())
             .with_exit_code(exit_code)
             .with_timeout(5)
             .with_arg(file.display())
