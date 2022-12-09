@@ -40,7 +40,7 @@ pub enum TestCase {
 impl TestCase {
     const DEFAULT_TIMEOUT: i32 = 15 * 60; // default timeout is 15 minutes
 
-    pub fn new() -> TestCase {
+    fn new() -> TestCase {
         TestCase::Test {
             name: String::new(),
             binary: String::new(),
@@ -54,18 +54,9 @@ impl TestCase {
     }
 
     pub fn from_cmd(cmd: &Command) -> TestCase {
-        TestCase::Test {
-            name: String::new(),
-            binary: cmd.get_program().to_string_lossy().to_string(),
-            exit_code: 0u8,
-            timeout: Self::DEFAULT_TIMEOUT,
-            stderr: String::new(),
-            stdout: String::new(),
-            args: cmd
-                .get_args()
-                .map(|s| s.to_string_lossy().to_string())
-                .collect(),
-        }
+        TestCase::new()
+            .with_binary(cmd.get_program().to_string_lossy().to_string())
+            .with_args(cmd.get_args().map(|arg| arg.to_string_lossy()))
     }
 
     pub fn with_exit_code(mut self, new_exit_code: u8) -> TestCase {
@@ -104,6 +95,10 @@ impl TestCase {
         }
 
         self
+    }
+
+    pub fn with_args<T: Display>(self, args: impl Iterator<Item = T>) -> TestCase {
+        args.fold(self, |tc, arg| tc.with_arg(arg))
     }
 
     pub fn with_binary<T: Display>(mut self, new_binary: T) -> TestCase {

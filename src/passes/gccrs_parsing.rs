@@ -28,11 +28,12 @@ impl Pass for GccrsParsing {
             .status()?
             .success();
 
-        let test_case = TestCase::new()
+        let mut gccrs = Compiler::new(Kind::Gccrs, args);
+
+        let test_case = TestCase::from_cmd(gccrs.command())
             .with_name(format!("Parse `{}`", file.display()))
-            .with_binary(args.gccrs.display())
             .with_exit_code(if is_valid { 0 } else { 1 })
-            .with_timeout(5)
+            .with_timeout(1)
             .with_arg("-fsyntax-only")
             .with_arg(file.display());
 
