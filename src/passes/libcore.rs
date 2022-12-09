@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::args::Args;
+use crate::compiler::{Compiler, Kind};
 use crate::copy_rs_files;
 use crate::error::{Error, MiscKind};
 use crate::passes::{Pass, TestCase};
@@ -67,13 +68,14 @@ impl Pass for LibCore {
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        Ok(TestCase::new()
+        let mut compiler = Compiler::new(Kind::Gccrs, args);
+
+        Ok(TestCase::from_cmd(compiler.command())
             .with_name(format!(
                 "Compiling libcore {} ({} step)",
                 self.tag(),
                 self.step().compile_option()
             ))
-            .with_binary(args.gccrs.display())
             .with_arg(file.display())
             .with_arg(self.step().compile_option())
             .with_exit_code(0))

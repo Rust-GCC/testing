@@ -19,11 +19,7 @@ impl Pass for RustcDejagnu {
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
         let test_content = fs::read_to_string(file)?;
 
-        let exit_code = if test_content.contains("dg-error") {
-            1
-        } else {
-            0
-        };
+        let exit_code = u8::from(test_content.contains("dg-error"));
 
         // FIXME: This should be removed once we have a proper main shim in gccrs
         // This is to make sure that we can't ever get a "success" because a test

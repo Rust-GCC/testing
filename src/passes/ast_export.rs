@@ -6,6 +6,7 @@ use std::time::Duration;
 use wait_timeout::ChildExt;
 
 use crate::args::Args;
+use crate::compiler::{Compiler, Kind};
 use crate::error::Error;
 use crate::fetch_rust_files;
 use crate::passes::{Pass, TestCase};
@@ -22,10 +23,9 @@ fn get_original_file_from_pretty(pretty_file: &Path) -> PathBuf {
 fn adapt_compilation(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
     let original_file = get_original_file_from_pretty(pretty_file);
 
-    let is_valid = Command::new(&args.gccrs)
+    let is_valid = Compiler::new(Kind::Gccrs, args)
+        .command()
         .arg(original_file.as_os_str())
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
         .status()?
         .success();
 
@@ -43,12 +43,11 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
     let binary_name = original_file.with_extension("");
 
     // Build the original binary
-    if !Command::new(&args.gccrs)
+    if !Compiler::new(Kind::Gccrs, args)
+        .command()
         .arg(original_file.as_os_str())
         .arg("-o")
         .arg(binary_name.as_os_str())
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
         .status()?
         .success()
     {
@@ -57,8 +56,8 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
     }
 
     let mut child = Command::new(binary_name.as_os_str())
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
         .spawn()?;
 
     // Run the original binary
@@ -74,14 +73,11 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
         Some(code) => {
             let binary_name = binary_name.with_extension("pretty");
             // We now build the "prettified binary". If that fails, skip it as that's been handled by the `Compile` phase
-            if !Command::new(&args.gccrs)
-                .arg("-x")
-                .arg("rust")
+            if !Compiler::new(Kind::Gccrs, args)
+                .command()
                 .arg(pretty_file)
                 .arg("-o")
                 .arg(binary_name.as_os_str())
-                .stderr(Stdio::piped())
-                .stdout(Stdio::piped()) // FIXME
                 .status()?
                 .success()
             {
@@ -134,13 +130,12 @@ impl Pass for AstExport {
                 let new_path_original = output_dir.join(entry.path());
                 let new_path = output_dir.join(entry.path()).with_extension("pretty-rs");
 
-                Command::new(&args.gccrs)
+                Compiler::new(Kind::Gccrs, args)
+                    .command()
                     .arg(entry.path())
                     .arg("-frust-dump-ast-pretty")
                     // No need to go further in the pipeline
                     .arg("-frust-compile-until=lowering")
-                    .stderr(Stdio::piped())
-                    .stdout(Stdio::piped())
                     .status()?;
 
                 // Make sure the directory exists

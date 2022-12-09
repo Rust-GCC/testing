@@ -13,8 +13,10 @@ pub use libcore::LibCore;
 pub use rustc_dejagnu::RustcDejagnu;
 
 use std::{
+    ffi::OsStr,
     fmt::Display,
     path::{Path, PathBuf},
+    process::Command,
     str::FromStr,
 };
 
@@ -37,17 +39,25 @@ pub enum TestCase {
 }
 
 impl TestCase {
-    pub fn new() -> TestCase {
+    const DEFAULT_TIMEOUT: i32 = 15 * 60; // default timeout is 15 minutes
+
+    fn new() -> TestCase {
         TestCase::Test {
             name: String::new(),
             binary: String::new(),
             exit_code: 0u8,
             // FIXME: Use duration here (#10)
-            timeout: 15 * 60, // default timeout is 15 minutes
+            timeout: Self::DEFAULT_TIMEOUT,
             stderr: String::new(),
             stdout: String::new(),
             args: vec![],
         }
+    }
+
+    pub fn from_cmd(cmd: &Command) -> TestCase {
+        TestCase::new()
+            .with_binary(cmd.get_program().to_string_lossy().to_string())
+            .with_args(cmd.get_args().map(OsStr::to_string_lossy))
     }
 
     pub fn with_exit_code(mut self, new_exit_code: u8) -> TestCase {
@@ -86,6 +96,10 @@ impl TestCase {
         }
 
         self
+    }
+
+    pub fn with_args<T: Display>(self, args: impl Iterator<Item = T>) -> TestCase {
+        args.fold(self, TestCase::with_arg)
     }
 
     pub fn with_binary<T: Display>(mut self, new_binary: T) -> TestCase {
