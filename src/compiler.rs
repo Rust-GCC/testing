@@ -27,6 +27,11 @@ pub enum Kind {
     RustcBootstrap,
 }
 
+/// All crate types used in the testsuite
+pub enum CrateType {
+    Library,
+}
+
 impl Kind {
     /// Get the path associated with a specific compiler kind
     fn as_path_from_args<'args>(&self, args: &'args Args) -> &'args Path {
@@ -92,7 +97,7 @@ impl Compiler {
 
     /// Set the crate name to use for a compiler invocation. This is equivalent
     /// to `--crate-name` for `rustc` and `-frust-crate-name` for `gccrs`
-    pub fn crate_name(&mut self, crate_name: &str) -> &mut Compiler {
+    pub fn crate_name(mut self, crate_name: &str) -> Compiler {
         match self.kind() {
             Kind::Gccrs => self.cmd.arg("-frust-crate-name"),
             Kind::RustcBootstrap => self.cmd.arg("--crate-name"),
@@ -102,9 +107,21 @@ impl Compiler {
         self
     }
 
+    /// Choose which type of crate to compile. This is equivalent to --crate-type for `rustc`
+    /// and has no equivalent for `gccrs`
+    pub fn crate_type(mut self, crate_type: CrateType) -> Compiler {
+        if let Kind::RustcBootstrap = self.kind() {
+            self.cmd.arg("--crate-type").arg(match crate_type {
+                CrateType::Library => "lib",
+            });
+        }
+
+        self
+    }
+
     /// Set the edition to use for a compiler invocation. This is equivalent to
     /// `--edition` for `rustc` and `-frust-edition` for `gccrs`
-    pub fn edition(&mut self, edition: Edition) -> &mut Compiler {
+    pub fn edition(mut self, edition: Edition) -> Compiler {
         match self.kind() {
             Kind::Gccrs => self.cmd.arg("-frust-edition"),
             Kind::RustcBootstrap => self.cmd.arg("--edition"),
