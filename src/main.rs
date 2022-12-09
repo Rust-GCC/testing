@@ -55,8 +55,8 @@ pub fn copy_rs_files(
         .into_par_iter()
         .map(move |entry| {
             let old_path = entry.path();
-            let new_path = old_path.strip_prefix(&prefix_to_strip)?;
-            let new_path = to.join(&new_path);
+            let new_path = old_path.strip_prefix(prefix_to_strip)?;
+            let new_path = to.join(new_path);
 
             if let Some(new_parent) = new_path.parent() {
                 fs::create_dir_all(new_parent)?;
