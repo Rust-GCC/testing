@@ -15,6 +15,7 @@ pub use rustc_dejagnu::RustcDejagnu;
 use std::{
     fmt::Display,
     path::{Path, PathBuf},
+    process::Command,
     str::FromStr,
 };
 
@@ -37,16 +38,33 @@ pub enum TestCase {
 }
 
 impl TestCase {
+    const DEFAULT_TIMEOUT: i32 = 15 * 60; // default timeout is 15 minutes
+
     pub fn new() -> TestCase {
         TestCase::Test {
             name: String::new(),
             binary: String::new(),
             exit_code: 0u8,
             // FIXME: Use duration here (#10)
-            timeout: 15 * 60, // default timeout is 15 minutes
+            timeout: Self::DEFAULT_TIMEOUT,
             stderr: String::new(),
             stdout: String::new(),
             args: vec![],
+        }
+    }
+
+    pub fn from_cmd(cmd: &Command) -> TestCase {
+        TestCase::Test {
+            name: String::new(),
+            binary: cmd.get_program().to_string_lossy().to_string(),
+            exit_code: 0u8,
+            timeout: Self::DEFAULT_TIMEOUT,
+            stderr: String::new(),
+            stdout: String::new(),
+            args: cmd
+                .get_args()
+                .map(|s| s.to_string_lossy().to_string())
+                .collect(),
         }
     }
 
