@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::args::Args;
-use crate::compiler::{Compiler, Kind};
+use crate::compiler::{Compiler, CrateType, Kind};
 use crate::error::Error;
 use crate::passes::{Pass, TestCase};
 
@@ -65,19 +65,15 @@ impl Pass for Blake3 {
             // FIXME: Missing lang items prelude
         };
 
-        let mut compiler = match self {
+        let compiler = match self {
             Blake3::GccrsOriginal | Blake3::GccrsPrelude => Compiler::new(Kind::Gccrs, args),
             Blake3::RustcNoStd | Blake3::RustcNoCore => Compiler::new(Kind::RustcBootstrap, args),
-        };
-
-        let cmd = match self {
-            Blake3::RustcNoCore | Blake3::RustcNoStd => compiler.command().arg("--crate-type=lib"),
-            _ => compiler.command(),
-        };
+        }
+        .crate_type(CrateType::Library);
 
         fs::write(file, format!("{}{}", prelude, BLAKE3_TEMPLATE))?;
 
-        Ok(TestCase::from_cmd(cmd)
+        Ok(TestCase::from_compiler(compiler)
             .with_arg(file.display())
             .with_name(format!(
                 "Compile Blake3 reference implementation ({})",
