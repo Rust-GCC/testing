@@ -23,13 +23,13 @@ fn get_original_file_from_pretty(pretty_file: &Path) -> PathBuf {
 fn adapt_compilation(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
     let original_file = get_original_file_from_pretty(pretty_file);
 
-    let is_valid = Compiler::new(Kind::Gccrs, args)
+    let is_valid = Compiler::new(Kind::Rust1, args)
         .command()
         .arg(original_file.as_os_str())
         .status()?
         .success();
 
-    let test_case = TestCase::from_compiler(Compiler::new(Kind::Gccrs, args))
+    let test_case = TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
         .with_name(format!("Compile prettified `{}`", original_file.display()))
         .with_exit_code(if is_valid { 0 } else { 1 })
         .with_arg(pretty_file.display());
@@ -42,7 +42,7 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
     let binary_name = original_file.with_extension("");
 
     // Build the original binary
-    if !Compiler::new(Kind::Gccrs, args)
+    if !Compiler::new(Kind::Rust1, args)
         .command()
         .arg(original_file.as_os_str())
         .arg("-o")
@@ -72,7 +72,7 @@ fn adapt_run(args: &Args, pretty_file: &Path) -> Result<TestCase, Error> {
         Some(code) => {
             let binary_name = binary_name.with_extension("pretty");
             // We now build the "prettified binary". If that fails, skip it as that's been handled by the `Compile` phase
-            if !Compiler::new(Kind::Gccrs, args)
+            if !Compiler::new(Kind::Rust1, args)
                 .command()
                 .arg(pretty_file)
                 .arg("-o")
@@ -129,7 +129,7 @@ impl Pass for AstExport {
                 let new_path_original = output_dir.join(entry.path());
                 let new_path = output_dir.join(entry.path()).with_extension("pretty-rs");
 
-                Compiler::new(Kind::Gccrs, args)
+                Compiler::new(Kind::Rust1, args)
                     .command()
                     .arg(entry.path())
                     .arg("-frust-dump-ast-pretty")

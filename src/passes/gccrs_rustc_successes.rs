@@ -86,7 +86,7 @@ impl Pass for GccrsRustcSuccesses {
             }
         }
 
-        let test_case = TestCase::from_compiler(Compiler::new(Kind::Gccrs, args))
+        let test_case = TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
             .with_name(format!("Compile {} success `{}`", self, file.display()))
             .with_exit_code(0)
             // FIXME: Use proper duration here (#10)
