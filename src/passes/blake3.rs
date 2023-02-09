@@ -71,7 +71,7 @@ impl Pass for Blake3 {
         }
         .crate_type(CrateType::Library);
 
-        fs::write(file, format!("{}{}", prelude, BLAKE3_TEMPLATE))?;
+        fs::write(file, format!("{prelude}{BLAKE3_TEMPLATE}"))?;
 
         Ok(TestCase::from_compiler(compiler)
             .with_arg(file.display())

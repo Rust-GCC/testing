@@ -25,7 +25,7 @@ impl Display for GccrsRustcSuccesses {
             GccrsRustcSuccesses::NoCore => "no-core",
         };
 
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -62,7 +62,7 @@ impl Pass for GccrsRustcSuccesses {
             GccrsRustcSuccesses::NoCore => "#![feature(no_core)]\n#![no_core]\n",
         };
 
-        fs::write(file, format!("{}{}", extra_str, test_content))?;
+        fs::write(file, format!("{extra_str}{test_content}"))?;
 
         if let GccrsRustcSuccesses::NoStd | GccrsRustcSuccesses::NoCore = self {
             let mut child = Compiler::new(Kind::RustcBootstrap, args)

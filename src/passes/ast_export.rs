@@ -31,7 +31,7 @@ fn adapt_compilation(args: &Args, pretty_file: &Path) -> Result<TestCase, Error>
 
     let test_case = TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
         .with_name(format!("Compile prettified `{}`", original_file.display()))
-        .with_exit_code(if is_valid { 0 } else { 1 })
+        .with_exit_code(u8::from(!is_valid))
         .with_arg(pretty_file.display());
 
     Ok(test_case)
@@ -142,7 +142,7 @@ impl Pass for AstExport {
                     fs::create_dir_all(parent)?;
                 }
 
-                fs::copy(entry.path(), &new_path_original)?;
+                fs::copy(entry.path(), new_path_original)?;
                 fs::copy("gccrs.ast-pretty.dump", &new_path)?;
 
                 Ok(new_path)
