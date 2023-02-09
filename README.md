@@ -72,6 +72,7 @@ Pass to run and generate a test suite from. The currently available passes are
 |gccrs-rustc-success-no-core|Launch `gccrs` against all successful testcases in the `rustc` testsuite in `#[no_core]` mode|
 |blake3|Launch `gccrs` on the Blake3 cryptography project|
 |libcore|Launch `gccrs` on various version of the core library|
+|ast-export| Make sure `gccrs` exports valid Rust code|
 
 ## Running the test-suite
 
