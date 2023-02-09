@@ -125,16 +125,16 @@ impl Display for TestCase {
                 stdout,
                 args,
             } => {
-                writeln!(f, "  - name: {}", name)?;
-                writeln!(f, "    binary: {}", binary)?;
-                writeln!(f, "    timeout: {}", timeout)?;
-                writeln!(f, "    exit_code: {}", exit_code)?;
-                writeln!(f, "    stdout: \"{}\"", stdout)?;
-                writeln!(f, "    stderr: \"{}\"", stderr)?;
+                writeln!(f, "  - name: {name}")?;
+                writeln!(f, "    binary: {binary}")?;
+                writeln!(f, "    timeout: {timeout}")?;
+                writeln!(f, "    exit_code: {exit_code}")?;
+                writeln!(f, "    stdout: \"{stdout}\"")?;
+                writeln!(f, "    stderr: \"{stderr}\"")?;
                 writeln!(f, "    args:")?;
 
                 for arg in args {
-                    writeln!(f, "      - \"{}\"", arg)?;
+                    writeln!(f, "      - \"{arg}\"")?;
                 }
 
                 Ok(())
@@ -214,6 +214,6 @@ impl Display for PassKind {
             PassKind::AstExport => "ast-export",
         };
 
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }

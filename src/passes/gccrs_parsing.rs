@@ -30,7 +30,7 @@ impl Pass for GccrsParsing {
 
         let test_case = TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
             .with_name(format!("Parse `{}`", file.display()))
-            .with_exit_code(if is_valid { 0 } else { 1 })
+            .with_exit_code(u8::from(!is_valid))
             .with_timeout(1)
             .with_arg("-fsyntax-only")
             .with_arg(file.display());
