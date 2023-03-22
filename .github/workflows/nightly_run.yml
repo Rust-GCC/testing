@@ -25,7 +25,7 @@ jobs:
           cargo build --release
           git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
           git submodule update --init
-          target/release/testsuite-adaptor --gccrs $(find /usr/local -name 'rust1') --rustc rustc \
+          target/release/testsuite-adaptor --gccrs $(find /usr/local -name 'crab1') --rustc rustc \
               --output-dir output-dir-${{ matrix.testsuite }} \
               --yaml ${{ matrix.testsuite }}.yaml \
               --rust-path rust --gccrs-path local_gccrs \
