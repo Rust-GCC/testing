@@ -18,12 +18,12 @@ jobs:
           # FIXME: Switch to `cargo install ftf` on next release, we need the
           # `result-fmt` feature
           cargo install --git https://github.com/cohenarthur/ftf
-
-      - name: Generate testsuites (nightly)
-        run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
           git clone https://github.com/rust-lang/rust --branch 1.49.0 local_rust
+
+      - name: Generate testsuites (nightly)
+        run: |
           cargo build --release
           target/release/testsuite-adaptor --gccrs $(find /usr/local -name 'crab1') --rustc rustc \
               --output-dir output-dir-${{ matrix.testsuite }} \
