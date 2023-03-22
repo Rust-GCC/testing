@@ -19,6 +19,11 @@ jobs:
           # `result-fmt` feature
           cargo install --git https://github.com/cohenarthur/ftf
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          # we clone new versions of gccrs and rustc, so we must first delete the old ones if they exist
+          rm -rf local_gccrs || true
+          rm -rf local_rust || true
+
           git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
           git clone https://github.com/rust-lang/rust --branch 1.49.0 local_rust
 
