@@ -18,9 +18,12 @@ jobs:
           # `result-fmt` feature
           cargo install --git https://github.com/cohenarthur/ftf
 
+      - uses: actions/checkout@v3
+        with:
+          set-safe-directory: ${{ github.workspace }}
+
       - name: Generate testsuites (nightly)
         run: |
-          git clone https://github.com/rust-gcc/testing --depth 1 .
           cargo build --release
           git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
           git clone https://github.com/rust-lang/rust --branch 1.49.0 local_rust
