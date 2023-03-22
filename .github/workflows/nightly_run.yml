@@ -23,15 +23,12 @@ jobs:
       - name: Generate testsuites (nightly)
         run: |
           cargo build --release
-          # some weird submodule update errors, but we don't really care since this job will just run in a container and ownership
-          # *will* be dubious no matter what... between what github checks out and what we pull in, etc
-          git config --global --add safe.directory '*'
           git clone https://github.com/rust-gcc/gccrs --depth=1 local_gccrs
-          git submodule update --init
+          git clone https://github.com/rust-lang/rust --branch 1.49.0 local_rust
           target/release/testsuite-adaptor --gccrs $(find /usr/local -name 'crab1') --rustc rustc \
               --output-dir output-dir-${{ matrix.testsuite }} \
               --yaml ${{ matrix.testsuite }}.yaml \
-              --rust-path rust --gccrs-path local_gccrs \
+              --rust-path local_rust --gccrs-path local_gccrs \
               --pass ${{ matrix.testsuite }}
 
       - name: Run testsuite
