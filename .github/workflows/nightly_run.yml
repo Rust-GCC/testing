@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         testsuite: [rustc-dejagnu, gccrs-parsing, gccrs-rustc-success, gccrs-rustc-success-no-std, gccrs-rustc-success-no-core, blake3, libcore]
+        # testsuite: [blake3]
     steps:
       - name: Fetch dependencies
         run: |
@@ -38,7 +39,7 @@ jobs:
 
       - name: Run testsuite
         run: |
-          echo "{ \"name\": \"${{matrix.testsuite}}\", \"commit\": \"$(cat /GCCRS_BUILD)\", \"date\": \"$(date -I)\", \"results\": " >> ${{ matrix.testsuite }}.json
+          echo "{ \"name\": \"${{matrix.testsuite}}\", \"commit\": \"$(cat /GCCRS_BUILD)\", \"date\": \"$(date -I)\", \"results\": " > ${{ matrix.testsuite }}.json
 
           ftf -f ${{ matrix.testsuite }}.yaml -j 1 --result-fmt "{ \"tests\": %t, \"passes\": %p, \"failures\": %f }" | tee log;
 
