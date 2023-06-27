@@ -68,7 +68,7 @@ impl Pass for LibCore {
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        Ok(TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
+        Ok(TestCase::from_compiler(Compiler::new(Kind::Crab1, args))
             .with_name(format!(
                 "Compiling libcore {} ({} step)",
                 self.tag(),

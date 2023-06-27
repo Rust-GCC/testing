@@ -66,7 +66,7 @@ impl Pass for Blake3 {
         };
 
         let compiler = match self {
-            Blake3::GccrsOriginal | Blake3::GccrsPrelude => Compiler::new(Kind::Rust1, args),
+            Blake3::GccrsOriginal | Blake3::GccrsPrelude => Compiler::new(Kind::Crab1, args),
             Blake3::RustcNoStd | Blake3::RustcNoCore => Compiler::new(Kind::RustcBootstrap, args),
         }
         .crate_type(CrateType::Library);

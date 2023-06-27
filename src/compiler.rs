@@ -24,7 +24,7 @@ impl Edition {
 /// All compiler kinds used in the testsuite
 #[derive(Clone, Copy)]
 pub enum Kind {
-    Rust1,
+    Crab1,
     RustcBootstrap,
 }
 
@@ -38,7 +38,7 @@ impl Kind {
     /// Get the path associated with a specific compiler kind
     fn as_path_from_args(self, args: &Args) -> &Path {
         match self {
-            Kind::Rust1 => &args.gccrs,
+            Kind::Crab1 => &args.gccrs,
             Kind::RustcBootstrap => &args.rustc,
         }
     }
@@ -58,14 +58,14 @@ impl CommandExt for Command {
         match kind {
             // specify Rust language by default, which allows us to compile Rust files with funny extensions
             // use experimental flag
-            Kind::Rust1 => self.arg("-frust-incomplete-and-experimental-compiler-do-not-use"),
+            Kind::Crab1 => self.arg("-frust-incomplete-and-experimental-compiler-do-not-use"),
             Kind::RustcBootstrap => self,
         }
     }
 
     fn default_env(&mut self, kind: Kind) -> &mut Command {
         match kind {
-            Kind::Rust1 => self,
+            Kind::Crab1 => self,
             Kind::RustcBootstrap => self.env("RUSTC_BOOTSTRAP", "1"),
         }
     }
@@ -98,7 +98,7 @@ impl Compiler {
     /// to `--crate-name` for `rustc` and `-frust-crate-name` for `gccrs`
     pub fn crate_name(mut self, crate_name: &str) -> Compiler {
         match self.kind() {
-            Kind::Rust1 => self.cmd.arg("-frust-crate-name"),
+            Kind::Crab1 => self.cmd.arg("-frust-crate-name"),
             Kind::RustcBootstrap => self.cmd.arg("--crate-name"),
         };
 
@@ -122,7 +122,7 @@ impl Compiler {
     /// `--edition` for `rustc` and `-frust-edition` for `gccrs`
     pub fn edition(mut self, edition: Edition) -> Compiler {
         match self.kind() {
-            Kind::Rust1 => self.cmd.arg("-frust-edition"),
+            Kind::Crab1 => self.cmd.arg("-frust-edition"),
             Kind::RustcBootstrap => self.cmd.arg("--edition"),
         };
 

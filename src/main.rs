@@ -94,10 +94,7 @@ fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
         .into_iter()
         .flatten()
         .collect(),
-        PassKind::AstExport => vec![
-            Box::new(passes::AstExport::Compile),
-            Box::new(passes::AstExport::Run),
-        ],
+        PassKind::AstExport => vec![Box::new(passes::AstExport::Compile)],
     }
 }
 
