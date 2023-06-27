@@ -3,7 +3,7 @@ edition = "2021"
 name = "testsuite-adaptor"
 version = "0.1.0"
 [dependencies]
-anyhow = "1.0"
+anyhow = { version = "1.0", features = ["backtrace"] }
 colored = "2.0"
 rayon = "1.5"
 structopt = "0.3"
