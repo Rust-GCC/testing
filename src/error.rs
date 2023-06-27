@@ -12,7 +12,7 @@ pub enum MiscKind {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("{0}")]
+    #[error("i/o error: {0}")]
     Io(std::io::Error),
     #[error("given path to `rust` does not exist: {0}")]
     NoRust(std::path::PathBuf),

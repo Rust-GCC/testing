@@ -28,7 +28,7 @@ impl Pass for GccrsParsing {
             .status()?
             .success();
 
-        let test_case = TestCase::from_compiler(Compiler::new(Kind::Rust1, args))
+        let test_case = TestCase::from_compiler(Compiler::new(Kind::Crab1, args))
             .with_name(format!("Parse `{}`", file.display()))
             .with_exit_code(u8::from(!is_valid))
             .with_timeout(1)
