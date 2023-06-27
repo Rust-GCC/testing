@@ -11,7 +11,7 @@ jobs:
     container: philberty/gccrs:latest
     strategy:
       matrix:
-        testsuite: [rustc-dejagnu, gccrs-parsing, gccrs-rustc-success, gccrs-rustc-success-no-std, gccrs-rustc-success-no-core, blake3, libcore]
+        testsuite: [rustc-dejagnu, gccrs-parsing, gccrs-rustc-success, gccrs-rustc-success-no-std, gccrs-rustc-success-no-core, blake3, libcore, ast-export]
         # testsuite: [blake3]
     steps:
       - name: Fetch dependencies
