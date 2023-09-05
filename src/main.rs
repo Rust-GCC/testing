@@ -69,7 +69,7 @@ pub fn copy_rs_files(
         .collect()
 }
 
-fn pass_dispatch(pass: &PassKind) -> Vec<Box<dyn Pass>> {
+fn pass_dispatch(pass: PassKind) -> Vec<Box<dyn Pass>> {
     match pass {
         PassKind::GccrsParsing => vec![Box::new(passes::GccrsParsing)],
         PassKind::RustcDejagnu => vec![Box::new(passes::RustcDejagnu)],
@@ -142,7 +142,7 @@ fn main() -> anyhow::Result<()> {
 
     let ftf_header = String::from("tests:\n");
 
-    let pass_kind = &args.pass;
+    let pass_kind = args.pass;
     let passes = pass_dispatch(pass_kind);
     log!("running pass `{}`...", pass_kind);
 

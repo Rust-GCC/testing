@@ -5,6 +5,7 @@ use crate::error::Error;
 use crate::passes::{Pass, TestCase};
 
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub struct RustcDejagnu;
@@ -18,18 +19,27 @@ impl Pass for RustcDejagnu {
     }
 
     fn adapt(&self, args: &Args, file: &Path) -> Result<TestCase, Error> {
-        let test_content = fs::read_to_string(file)?;
+        // we have invalid UTF-8 testcases, so we cannot just use `fs::read_to_string`
+        let mut test_file = fs::File::open(file)?;
+        let mut bytes = Vec::new();
+        test_file.read_to_end(&mut bytes)?;
 
-        let exit_code = u8::from(test_content.contains("dg-error"));
+        let exit_code = match String::from_utf8(bytes) {
+            Ok(content) => {
+                let mut exit_code = u8::from(content.contains("dg-error"));
 
-        // FIXME: This should be removed once we have a proper main shim in gccrs
-        // This is to make sure that we can't ever get a "success" because a test
-        // contains a dg-error directive and a `fn main() -> i32` so rustc produces
-        // the correct exit code
-        let exit_code = if test_content.contains("fn main() -> i32") {
-            255
-        } else {
-            exit_code
+                // FIXME: This should be removed once we have a proper main shim in gccrs
+                // This is to make sure that we can't ever get a "success" because a test
+                // contains a dg-error directive and a `fn main() -> i32` so rustc produces
+                // the correct exit code
+                if content.contains("fn main()") {
+                    exit_code = 255;
+                }
+
+                exit_code
+            }
+            // invalid UTF-8 in the file
+            Err(_) => 1, // Is that stable?
         };
 
         let test_case = TestCase::from_compiler(Compiler::new(Kind::RustcBootstrap, args))
