@@ -14,9 +14,9 @@ use args::Args;
 use error::Error;
 use passes::{Pass, PassKind};
 
+use clap::Parser;
 use rayon::prelude::*;
 use steps::CompileStep;
-use structopt::StructOpt;
 use walkdir::WalkDir;
 use which::which;
 
@@ -124,7 +124,7 @@ fn warn_on_file_not_found(name: &str, path: &Path) {
 }
 
 fn main() -> anyhow::Result<()> {
-    let args = Args::from_args();
+    let args = Args::parse();
     maybe_create_output_dir(&args.output_dir)?;
     if !args.rust_path.exists() {
         return Err(Error::NoRust(args.rust_path).into());
