@@ -15,7 +15,6 @@ pub use rustc_dejagnu::RustcDejagnu;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 use crate::compiler::Compiler;
 use crate::{args::Args, error::Error};
@@ -154,6 +153,7 @@ pub trait Pass: Sync {
 
 /// Passes to run when generating the test-suite file. One can chose to run only
 /// a specific pass, or multiple of them
+#[derive(Clone, Copy, clap::ValueEnum)]
 pub enum PassKind {
     /// Generates test cases for running gccrs and rustc in parse-only mode on
     /// the rustc test suite
@@ -180,24 +180,6 @@ pub struct InvalidPassKind(String);
 impl Display for InvalidPassKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "invalid pass name provided: {}", self.0)
-    }
-}
-
-impl FromStr for PassKind {
-    type Err = InvalidPassKind;
-
-    fn from_str(s: &str) -> Result<PassKind, Self::Err> {
-        match s {
-            "gccrs-parsing" => Ok(PassKind::GccrsParsing),
-            "rustc-dejagnu" => Ok(PassKind::RustcDejagnu),
-            "gccrs-rustc-success" => Ok(PassKind::GccrsRustcSucess),
-            "gccrs-rustc-success-no-std" => Ok(PassKind::GccrsRustcSucessNoStd),
-            "gccrs-rustc-success-no-core" => Ok(PassKind::GccrsRustcSucessNoCore),
-            "blake3" => Ok(PassKind::Blake3),
-            "libcore" => Ok(PassKind::LibCore),
-            "ast-export" => Ok(PassKind::AstExport),
-            s => Err(InvalidPassKind(s.to_string())),
-        }
     }
 }
 

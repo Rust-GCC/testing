@@ -2,28 +2,28 @@ use crate::passes::PassKind;
 
 use std::path::PathBuf;
 
-use structopt::StructOpt;
+use clap::Parser;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Args {
-    #[structopt(
+    #[arg(
         short,
         long,
         help = "output directory which will contain the new tests"
     )]
     pub(crate) output_dir: PathBuf,
-    #[structopt(short, long, help = "generated YAML ftf file name")]
+    #[arg(short, long, help = "generated YAML ftf file name")]
     pub(crate) yaml: PathBuf,
-    #[structopt(short, long, help = "path to the rustc compiler to use")]
+    #[arg(short, long, help = "path to the rustc compiler to use")]
     pub(crate) rustc: PathBuf,
-    #[structopt(short, long, help = "path to the gccrs compiler to use")]
+    #[arg(short, long, help = "path to the gccrs compiler to use")]
     pub(crate) gccrs: PathBuf,
-    #[structopt(long, help = "path to a cloned rust repository")]
+    #[arg(long, help = "path to a cloned rust repository")]
     pub(crate) rust_path: PathBuf,
-    #[structopt(long, help = "path to a cloned gccrs repository")]
+    #[arg(long, help = "path to a cloned gccrs repository")]
     pub(crate) gccrs_path: PathBuf,
-    #[structopt(short, long, help = "pass to to run in the adaptor")]
+    #[arg(short, long, help = "pass to to run in the adaptor")]
     pub(crate) pass: PassKind,
-    #[structopt(short, long, help = "amount of threads to use", default_value = "1")]
+    #[arg(short, long, help = "amount of threads to use", default_value = "1")]
     pub(crate) jobs: usize,
 }
