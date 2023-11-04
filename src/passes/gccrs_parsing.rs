@@ -11,7 +11,7 @@ pub struct GccrsParsing;
 impl Pass for GccrsParsing {
     fn fetch(&self, args: &Args) -> Result<Vec<PathBuf>, Error> {
         let rust_path = &args.rust_path;
-        let ui_tests = rust_path.join("src").join("test");
+        let ui_tests = rust_path.join("tests");
 
         copy_rs_files(&ui_tests, &args.output_dir, rust_path)
     }
