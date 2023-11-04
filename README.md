@@ -43,11 +43,11 @@ If you have `gccrs` installed on your system, you can also simply pass `--gccrs 
 
 `rustc` executable to use and test. Similar rules apply.
 
-### --rust_path
+### --rust-path
 
 Path to the cloned rustc repository to extract test cases from.
 
-### --gccrs_path
+### --gccrs-path
 
 Path to the cloned gccrs repository to extract test cases from.
 
@@ -84,8 +84,8 @@ If everything went smoothly, you should simply be able to run `ftf` on the gener
 
 ```sh
 > cargo run -- \
-	--gccrs './rust1' --rustc rustc \
-	--gccrs-path gccrs/ --rust_path rust/ \
+	--gccrs 'path/to/crab1' --rustc rustc \
+	--gccrs-path path/to/gccrs/ --rust-path path/to/rust/ \
 	--output-dir sources/ --yaml testsuite.yml \
 	--pass gccrs-parsing
 > ftf -f testsuite.yml -j$(nproc)
